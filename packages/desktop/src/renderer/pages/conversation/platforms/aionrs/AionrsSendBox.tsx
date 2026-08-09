@@ -35,7 +35,7 @@ import {
 import { useConversationRuntimeView } from '@/renderer/pages/conversation/runtime/useConversationRuntimeView';
 import { getConversationRuntimeWorkspaceErrorMessage } from '@/renderer/pages/conversation/utils/conversationCreateError';
 import { getChatSurfaceWidthClass } from '@/renderer/pages/conversation/utils/chatSurfaceWidth';
-import { ensureConversationRuntime } from '@/renderer/pages/conversation/utils/ensureConversationRuntime';
+import { ensureStandaloneConversationRuntime } from '@/renderer/pages/conversation/utils/runtimeGate';
 import { usePreviewContext } from '@/renderer/pages/conversation/Preview';
 import { useTeamPermission } from '@/renderer/pages/team/hooks/TeamPermissionContext';
 import type { TeamSendBoxRuntime } from '@/renderer/pages/team/components/teamSendRuntime';
@@ -121,7 +121,8 @@ const AionrsSendBox: React.FC<{
   agent_name?: string;
   teamSendMessage?: (payload: { input: string; files: ChatFileRef[] }) => Promise<void>;
   teamRuntime?: TeamSendBoxRuntime;
-}> = ({ conversation_id, modelSelection, session_mode, agent_name, teamSendMessage, teamRuntime }) => {
+  isTeamRunning?: boolean;
+}> = ({ conversation_id, modelSelection, session_mode, agent_name, teamSendMessage, teamRuntime, isTeamRunning }) => {
   const [dynamicModes, setDynamicModes] = useState<AgentModeOption[]>([]);
   const [currentMode, setCurrentMode] = useState<string | undefined>(session_mode);
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
@@ -174,7 +175,7 @@ const AionrsSendBox: React.FC<{
       await teamPermission.warmupSession();
       return;
     }
-    await ensureConversationRuntime(conversation_id);
+    await ensureStandaloneConversationRuntime(conversation_id);
   }, [conversation_id, teamPermission]);
   const runtimeConfig = useAcpConfigOptions({
     conversation_id,
@@ -328,7 +329,7 @@ const AionrsSendBox: React.FC<{
     enqueue,
     remove,
     prioritize,
-    sendNow,
+    sendNow: _sendNow,
     clear,
     reorder,
     toggleMode,
@@ -712,7 +713,7 @@ const AionrsSendBox: React.FC<{
         loading={teamRuntime?.loading ?? isBusy}
         active={teamRuntime?.isActive}
         onFocused={teamRuntime?.onFocus}
-        disabled={!current_model?.use_model}
+        disabled={!current_model?.use_model || (isTeamRunning ?? false)}
         placeholder={
           current_model?.use_model
             ? t('acp.sendbox.placeholder', {

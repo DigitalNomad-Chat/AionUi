@@ -111,7 +111,17 @@ const AcpSendBox: React.FC<{
   messageState: UseAcpMessageReturn;
   teamSendMessage?: (payload: { input: string; files: ChatFileRef[] }) => Promise<void>;
   teamRuntime?: TeamSendBoxRuntime;
-}> = ({ conversation_id, backend, session_mode, agent_name, messageState, teamSendMessage, teamRuntime }) => {
+  isTeamRunning?: boolean;
+}> = ({
+  conversation_id,
+  backend,
+  session_mode,
+  agent_name,
+  messageState,
+  teamSendMessage,
+  teamRuntime,
+  isTeamRunning,
+}) => {
   const {
     aiProcessing,
     setAiProcessing,
@@ -407,7 +417,7 @@ Please check your local CLI tool authentication status`,
     enqueue,
     remove,
     prioritize,
-    sendNow,
+    sendNow: _sendNow,
     clear,
     reorder,
     toggleMode,
@@ -732,7 +742,7 @@ Please check your local CLI tool authentication status`,
         loading={teamRuntime?.loading ?? isBusy}
         active={teamRuntime?.isActive}
         onFocused={teamRuntime?.onFocus}
-        disabled={false}
+        disabled={isTeamRunning ?? false}
         placeholder={t('acp.sendbox.placeholder', {
           backend: agent_name || backend,
           defaultValue: `Send message to {{backend}}...`,

@@ -15,8 +15,8 @@ import { useLayoutContext } from '@/renderer/hooks/context/LayoutContext';
 import { usePresetAssistantInfo } from '@/renderer/hooks/agent/usePresetAssistantInfo';
 import { iconColors } from '@/renderer/styles/colors';
 import { Button, Dropdown, Menu, Message, Tooltip, Typography } from '@arco-design/web-react';
-import { History, Plus } from '@icon-park/react';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { History } from '@icon-park/react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import useSWR from 'swr';
@@ -37,6 +37,9 @@ import { resolveConversationBackend } from '../utils/conversationAssistantIdenti
 import LegacyReadOnlyConversation from '../platforms/legacy/LegacyReadOnlyConversation';
 import { useActiveLease } from '../hooks/useActiveLease';
 import { useAdHocTeamFromConversation } from '../hooks/useAdHocTeamFromConversation';
+import { useAuth } from '@/renderer/hooks/context/AuthContext';
+import { isTeamRelatedConversation } from '../utils/conversationTeamOwnership';
+import { AdHocTeamSection } from './AdHocTeam/AdHocTeamSection';
 // import SkillRuleGenerator from './components/SkillRuleGenerator'; // Temporarily hidden
 
 const configErrorMessageKey = (error: unknown) => {
@@ -145,57 +148,6 @@ const _AddNewConversation: React.FC<{ conversation: TChatConversation }> = ({ co
 
 type AionrsConversation = Extract<TChatConversation, { type: 'aionrs' }>;
 
-const AdHocTeamHeaderAction: React.FC<{ conversation: TChatConversation }> = ({ conversation }) => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const adHocTeam = useAdHocTeamFromConversation(conversation.id);
-  const [creating, setCreating] = useState(false);
-
-  const create = useCallback(async () => {
-    if (creating) return;
-    setCreating(true);
-    try {
-      const result = await ipcBridge.team.fromConversation.invoke({
-        conversation_id: conversation.id,
-        user_id: 'system_default_user',
-      });
-      await adHocTeam.refresh();
-      if (result.team_id) void navigate(`/team/${result.team_id}`);
-    } catch (error) {
-      console.error('Failed to create ad-hoc team from conversation', error);
-      Message.error(t('team.sider.createTeam'));
-    } finally {
-      setCreating(false);
-    }
-  }, [adHocTeam, conversation.id, creating, navigate, t]);
-
-  if (adHocTeam.isLoading) return null;
-  if (adHocTeam.association?.team_id) {
-    return (
-      <Button
-        type='text'
-        size='mini'
-        data-testid='ad-hoc-team-status'
-        onClick={() => void navigate(`/team/${adHocTeam.association?.team_id}`)}
-      >
-        {adHocTeam.association.status === 'active' ? t('team.sider.title') : t('team.sider.delete')}
-      </Button>
-    );
-  }
-  return (
-    <Button
-      type='text'
-      size='mini'
-      loading={creating}
-      data-testid='ad-hoc-team-create'
-      icon={<Plus theme='outline' size='14' />}
-      onClick={() => void create()}
-    >
-      {t('team.sider.createTeam')}
-    </Button>
-  );
-};
-
 const AionrsConversationPanel: React.FC<{ conversation: AionrsConversation; sliderTitle: React.ReactNode }> = ({
   conversation,
   sliderTitle,
@@ -229,6 +181,9 @@ const AionrsConversationPanel: React.FC<{ conversation: AionrsConversation; slid
   const cronJobId = resolveCronJobId(conversation.extra);
   const { info: presetAssistantInfo } = usePresetAssistantInfo(conversation);
   const aionrsAssistantId = presetAssistantInfo?.assistantId;
+  const { user } = useAuth();
+  const isTeamConversation = isTeamRelatedConversation(conversation);
+  const adHocTeam = useAdHocTeamFromConversation(conversation.id, user?.id ?? 'system_default_user');
   const layout = useLayoutContext();
   // Mobile: model selection moved into the sendbox `+` action sheet to free up
   // header space; the dropdown stays available on desktop and tablets ≥768px.
@@ -259,7 +214,6 @@ const AionrsConversationPanel: React.FC<{ conversation: AionrsConversation; slid
     headerExtra: (
       <div className='flex items-center gap-8px'>
         <CronJobManager conversation_id={conversation.id} cron_job_id={cronJobId} />
-        <AdHocTeamHeaderAction conversation={conversation} />
         {!isMobile && (
           <AionrsModelSelector
             selection={modelSelection}
@@ -268,6 +222,13 @@ const AionrsConversationPanel: React.FC<{ conversation: AionrsConversation; slid
             onSetThoughtLevel={handleThoughtLevelSetOption}
           />
         )}
+        <AdHocTeamSection
+          conversationId={conversation.id}
+          userId={user?.id ?? 'system_default_user'}
+          isMobile={isMobile}
+          isTeamConversation={isTeamConversation}
+          adHocTeam={adHocTeam}
+        />
       </div>
     ),
     workspaceEnabled,
@@ -301,6 +262,7 @@ const AionrsConversationPanel: React.FC<{ conversation: AionrsConversation; slid
         }
         agent_name={presetAssistantInfo?.name}
         assistantId={aionrsAssistantId}
+        isTeamRunning={adHocTeam.isTeamRunning}
       />
     </ChatLayout>
   );
@@ -330,6 +292,10 @@ const ChatConversation: React.FC<{
 
   const conversationAgentName = (conversation?.extra as { agent_name?: string } | undefined)?.agent_name;
   const assistantDisplayName = presetAssistantInfo?.name || conversationAgentName;
+
+  const { user } = useAuth();
+  const isTeamConversation = conversation ? isTeamRelatedConversation(conversation) : false;
+  const adHocTeam = useAdHocTeamFromConversation(conversation?.id, user?.id ?? 'system_default_user');
 
   const conversationNode = useMemo(() => {
     if (!conversation || isAionrsConversation) return null;
@@ -362,6 +328,7 @@ const ChatConversation: React.FC<{
             assistantId={acpAssistantId}
             forkCapability={conversation.fork_capability}
             promptCapability={conversation.prompt_capability}
+            isTeamRunning={adHocTeam.isTeamRunning}
           ></AcpChat>
         );
       default:
@@ -376,6 +343,7 @@ const ChatConversation: React.FC<{
     cronJobId,
     resolvedHideSendBox,
     acpAssistantId,
+    adHocTeam.isTeamRunning,
   ]);
 
   const sliderTitle = useMemo(() => {
@@ -436,7 +404,16 @@ const ChatConversation: React.FC<{
         </div>
       )}
       {modelSelector && <div className='shrink-0'>{modelSelector}</div>}
-      {conversation && <AdHocTeamHeaderAction conversation={conversation} />}
+      {conversation && (
+        <AdHocTeamSection
+          conversationId={conversation.id}
+          userId={user?.id ?? 'system_default_user'}
+          isMobile={isMobile}
+          isReadOnly={isLegacyReadOnlyConversation}
+          isTeamConversation={isTeamConversation}
+          adHocTeam={adHocTeam}
+        />
+      )}
     </div>
   );
 

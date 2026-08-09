@@ -5,18 +5,19 @@
  */
 
 import { ipcBridge } from '@/common';
-import { isErrorTipMessage, normalizeTextMessageContent, transformMessage } from '@/common/chat/chatLib';
-import type { AvailableCommand, TMessage } from '@/common/chat/chatLib';
+import { isErrorTipMessage, transformMessage } from '@/common/chat/chatLib';
+import type { AvailableCommand } from '@/common/chat/chatLib';
 import { mapAcpCommandsToSlashCommands } from '@/common/chat/slash/acpMapping';
 import type { SlashCommandItem } from '@/common/chat/slash/types';
 import type { IResponseMessage } from '@/common/adapter/ipcBridge';
 import type { TokenUsageBreakdown, TokenUsageData } from '@/common/config/storage';
 import { useMergeLiveMessage } from '@/renderer/pages/conversation/Messages/hooks';
+import { useTeammateBackflow } from '@/renderer/pages/conversation/hooks/useTeammateBackflow';
 import { logStreamTerminalObserved } from '@/renderer/pages/conversation/runtime/useConversationRuntimeView';
 import { getConversationOrNull } from '@/renderer/pages/conversation/utils/conversationCache';
 import { isConversationProcessing } from '@/renderer/pages/conversation/utils/conversationRuntime';
 import { beginConversationTurn, endConversationTurn } from '@/renderer/pages/conversation/utils/conversationTurnClock';
-import { ensureConversationRuntime } from '@/renderer/pages/conversation/utils/ensureConversationRuntime';
+import { ensureStandaloneConversationRuntime } from '@/renderer/pages/conversation/utils/runtimeGate';
 import type { ThoughtData } from '@/renderer/components/chat/ThoughtDisplay';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -105,6 +106,7 @@ export const useAcpMessage = (
   options?: { skipWarmup?: boolean; prepareRuntime?: () => Promise<void> }
 ): UseAcpMessageReturn => {
   const mergeLiveMessage = useMergeLiveMessage();
+  const handleTeammateMessage = useTeammateBackflow(conversation_id);
   const [running, setRunning] = useState(false);
   const [hasHydratedRunningState, setHasHydratedRunningState] = useState(false);
   const [thought, setThought] = useState<ThoughtData>({
@@ -434,20 +436,9 @@ export const useAcpMessage = (
         case 'user_content':
           mergeLiveMessage(transformedMessage);
           break;
-        case 'teammate_message': {
-          const tmMsg = message.data as TMessage;
-          if (tmMsg && tmMsg.conversation_id === conversation_id) {
-            mergeLiveMessage(
-              tmMsg.type === 'text'
-                ? {
-                    ...tmMsg,
-                    content: normalizeTextMessageContent(tmMsg.content),
-                  }
-                : tmMsg
-            );
-          }
+        case 'teammate_message':
+          handleTeammateMessage(message);
           break;
-        }
         case 'acp_permission':
           // Auto-recover running state only if turn hasn't finished
           if (!runningRef.current && !turnFinishedRef.current) {
@@ -570,6 +561,7 @@ export const useAcpMessage = (
     [
       conversation_id,
       mergeLiveMessage,
+      handleTeammateMessage,
       completeActiveThinking,
       markTurnEnded,
       throttledSetThought,
@@ -684,7 +676,7 @@ export const useAcpMessage = (
   useEffect(() => {
     if (options?.skipWarmup && !options.prepareRuntime) return;
     let cancelled = false;
-    const runtimeReady = options?.prepareRuntime?.() ?? ensureConversationRuntime(conversation_id);
+    const runtimeReady = options?.prepareRuntime?.() ?? ensureStandaloneConversationRuntime(conversation_id);
     void runtimeReady
       .then(() => {
         if (cancelled) return;
@@ -729,7 +721,7 @@ export const useAcpMessage = (
   }, [markTurnEnded]);
 
   const fetchSlashCommands = useCallback(() => {
-    const runtimeReady = options?.prepareRuntime?.() ?? ensureConversationRuntime(conversation_id);
+    const runtimeReady = options?.prepareRuntime?.() ?? ensureStandaloneConversationRuntime(conversation_id);
     void runtimeReady
       .then(() => fetchAcpSlashCommands(conversation_id))
       .then((commands) => {

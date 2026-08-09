@@ -95,9 +95,19 @@ vi.mock('@/renderer/hooks/agent/usePresetAssistantInfo', () => ({
 }));
 
 vi.mock('@/renderer/pages/conversation/hooks/useAdHocTeamFromConversation', () => ({
-  getAdHocTeamRoute: (association: { team_id?: string } | null | undefined) =>
-    association?.team_id ? `/team/${association.team_id}` : null,
   useAdHocTeamFromConversation: (...args: unknown[]) => useAdHocTeamFromConversationMock(...args),
+}));
+
+const adHocTeamSectionMock = vi.fn((props: { isReadOnly?: boolean }) => (
+  <div data-testid='ad-hoc-team-section'>{props.isReadOnly ? 'read-only' : 'interactive'}</div>
+));
+
+vi.mock('@/renderer/pages/conversation/components/AdHocTeam/AdHocTeamSection', () => ({
+  AdHocTeamSection: (props: { isReadOnly?: boolean }) => adHocTeamSectionMock(props),
+}));
+
+vi.mock('@/renderer/hooks/context/AuthContext', () => ({
+  useAuth: () => ({ user: { id: 'user-1' }, status: 'authenticated' }),
 }));
 
 vi.mock('react-router-dom', () => ({
