@@ -97,6 +97,7 @@ const TeamPresetPanel: React.FC<Props> = ({ visible, onClose, team }) => {
             placeholder={t('settings.edit_preset', { defaultValue: 'Preset name' })}
           />
           <Button
+            data-testid='team-preset-save-btn'
             type='primary'
             icon={<Plus />}
             loading={saving}

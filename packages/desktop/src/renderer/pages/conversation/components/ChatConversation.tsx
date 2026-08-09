@@ -15,8 +15,8 @@ import { useLayoutContext } from '@/renderer/hooks/context/LayoutContext';
 import { usePresetAssistantInfo } from '@/renderer/hooks/agent/usePresetAssistantInfo';
 import { iconColors } from '@/renderer/styles/colors';
 import { Button, Dropdown, Menu, Message, Tooltip, Typography } from '@arco-design/web-react';
-import { History } from '@icon-park/react';
-import React, { useCallback, useMemo, useRef } from 'react';
+import { History, Plus } from '@icon-park/react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import useSWR from 'swr';
@@ -270,6 +270,24 @@ const ChatConversation: React.FC<{
   const isLegacyReadOnlyConversation = isLegacyReadOnlyConversationType(conversation?.type);
   const resolvedHideSendBox = hideSendBox || isLegacyReadOnlyConversationType(conversation?.type);
   const adHocTeam = useAdHocTeamFromConversation(conversation?.id);
+  const [creatingAdHocTeam, setCreatingAdHocTeam] = useState(false);
+  const createAdHocTeam = useCallback(async () => {
+    if (!conversation || creatingAdHocTeam) return;
+    setCreatingAdHocTeam(true);
+    try {
+      const result = await ipcBridge.team.fromConversation.invoke({
+        conversation_id: conversation.id,
+        user_id: 'system_default_user',
+      });
+      await adHocTeam.refresh();
+      if (result.team_id) void navigate(`/team/${result.team_id}`);
+    } catch (error) {
+      console.error('Failed to create ad-hoc team from conversation', error);
+      Message.error(t('team.sider.createTeam'));
+    } finally {
+      setCreatingAdHocTeam(false);
+    }
+  }, [adHocTeam, conversation, creatingAdHocTeam, navigate, t]);
   const adHocTeamStatus =
     conversation && adHocTeam.association?.team_id ? (
       <Button
@@ -400,6 +418,18 @@ const ChatConversation: React.FC<{
         </div>
       )}
       {modelSelector && <div className='shrink-0'>{modelSelector}</div>}
+      {conversation && !adHocTeam.isLoading && !adHocTeam.association && (
+        <Button
+          type='text'
+          size='mini'
+          loading={creatingAdHocTeam}
+          data-testid='ad-hoc-team-create'
+          icon={<Plus theme='outline' size='14' />}
+          onClick={() => void createAdHocTeam()}
+        >
+          {t('team.sider.createTeam')}
+        </Button>
+      )}
       {adHocTeamStatus}
     </div>
   );

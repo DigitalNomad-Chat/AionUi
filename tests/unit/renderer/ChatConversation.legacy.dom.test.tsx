@@ -6,8 +6,10 @@ import type { TChatConversation } from '@/common/config/storage';
 import ChatConversation from '@/renderer/pages/conversation/components/ChatConversation';
 
 const usePresetAssistantInfoMock = vi.fn();
+const useAdHocTeamFromConversationMock = vi.fn();
 const acpChatMock = vi.fn(() => <div data-testid='mock-acp-chat'>acp chat</div>);
 const acpModelSelectorMock = vi.fn(() => <div data-testid='mock-acp-model-selector'>model selector</div>);
+const navigateMock = vi.fn();
 
 vi.mock('@/renderer/pages/conversation/Messages/MessageList', () => ({
   default: ({ className }: { className?: string }) => <div className={className}>message history</div>,
@@ -56,6 +58,16 @@ vi.mock('@/renderer/hooks/agent/usePresetAssistantInfo', () => ({
   usePresetAssistantInfo: (...args: unknown[]) => usePresetAssistantInfoMock(...args),
 }));
 
+vi.mock('@/renderer/pages/conversation/hooks/useAdHocTeamFromConversation', () => ({
+  getAdHocTeamRoute: (association: { team_id?: string } | null | undefined) =>
+    association?.team_id ? `/team/${association.team_id}` : null,
+  useAdHocTeamFromConversation: (...args: unknown[]) => useAdHocTeamFromConversationMock(...args),
+}));
+
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => navigateMock,
+}));
+
 vi.mock('@/renderer/hooks/context/LayoutContext', () => ({
   useLayoutContext: () => ({ isMobile: false }),
 }));
@@ -86,6 +98,12 @@ describe('ChatConversation legacy runtime rendering', () => {
     acpChatMock.mockClear();
     acpModelSelectorMock.mockClear();
     usePresetAssistantInfoMock.mockReturnValue({ info: undefined, isLoading: false });
+    useAdHocTeamFromConversationMock.mockReturnValue({
+      association: null,
+      isLoading: false,
+      refresh: vi.fn(),
+    });
+    navigateMock.mockReset();
   });
 
   it.each(['gemini', 'codex', 'openclaw-gateway', 'nanobot', 'remote'] as const)(
@@ -140,6 +158,12 @@ describe('ChatConversation legacy runtime rendering', () => {
         assistantId: 'assistant-research',
       })
     );
+  });
+
+  it('exposes the ad-hoc team creation entry for an unassociated conversation', () => {
+    render(<ChatConversation conversation={legacyConversation('codex')} />);
+
+    expect(screen.getByTestId('ad-hoc-team-create')).toBeInTheDocument();
   });
 
   it('passes the resolved assistant backend to the ACP model selector for ACP conversations', () => {

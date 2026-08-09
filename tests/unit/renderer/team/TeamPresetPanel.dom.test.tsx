@@ -1,6 +1,22 @@
-import { describe, expect, it } from 'vitest';
-import { buildTeamPresetInput } from '@renderer/pages/team/components/TeamPresetPanel';
+import { render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import React from 'react';
+import TeamPresetPanel, { buildTeamPresetInput } from '@renderer/pages/team/components/TeamPresetPanel';
 import type { TTeam } from '@/common/types/team/teamTypes';
+
+vi.mock('@renderer/hooks/context/AuthContext', () => ({
+  useAuth: () => ({ user: { id: 'user-1' } }),
+}));
+
+vi.mock('@/common', () => ({
+  ipcBridge: {
+    teamPreset: {
+      list: { invoke: vi.fn().mockResolvedValue([]) },
+      create: { invoke: vi.fn().mockResolvedValue(undefined) },
+      delete: { invoke: vi.fn().mockResolvedValue(undefined) },
+    },
+  },
+}));
 
 const team = {
   id: 'team-1',
@@ -32,6 +48,10 @@ const team = {
 } satisfies TTeam;
 
 describe('TeamPresetPanel', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+  });
+
   it('builds a backend-compatible preset from a team roster', () => {
     const input = buildTeamPresetInput(team, '  My experts  ', 'user-1');
     expect(input.name).toBe('My experts');
@@ -39,5 +59,11 @@ describe('TeamPresetPanel', () => {
     expect(input.leader.assistant_name).toBe('Lead');
     expect(input.members).toHaveLength(1);
     expect(input.members[0]?.assistant_backend).toBe('aionrs');
+  });
+
+  it('renders the save preset entry for an active team', () => {
+    render(<TeamPresetPanel visible team={team} onClose={vi.fn()} />);
+
+    expect(screen.getByTestId('team-preset-save-btn')).toBeInTheDocument();
   });
 });
