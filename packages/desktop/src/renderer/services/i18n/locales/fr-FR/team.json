@@ -109,5 +109,34 @@
       "shutdown_request": "Demande d’arrêt"
     }
   },
-  "presets": {"title":"Équipes expertes","newPreset":"Nouveau","searchPlaceholder":"Rechercher des équipes","emptyDescription":"Créez des équipes réutilisables.","createPreset":"Créer une équipe experte","invoke":"Utiliser","invokeThisTeam":"Utiliser cette équipe","leaderLabel":"Chef","memberMissing":"Manquant","membersLabel":"Membres","examplesLabel":"Exemples","missingWarning":"Certains assistants sont indisponibles.","selectHint":"Sélectionnez une équipe pour voir les détails.","nameRequired":"Saisissez un nom","memberRequired":"Ajoutez un membre","leaderRequired":"Sélectionnez un chef","saveFailed":"Échec de l’enregistrement"}
+  "presets": {
+    "title": "Équipes expertes",
+    "newPreset": "Nouveau",
+    "searchPlaceholder": "Rechercher des équipes",
+    "emptyDescription": "Créez des équipes réutilisables.",
+    "createPreset": "Créer une équipe experte",
+    "invoke": "Utiliser",
+    "invokeThisTeam": "Utiliser cette équipe",
+    "leaderLabel": "Chef",
+    "memberMissing": "Manquant",
+    "membersLabel": "Membres",
+    "examplesLabel": "Exemples",
+    "missingWarning": "Certains assistants sont indisponibles.",
+    "selectHint": "Sélectionnez une équipe pour voir les détails.",
+    "nameRequired": "Saisissez un nom",
+    "memberRequired": "Ajoutez un membre",
+    "leaderRequired": "Sélectionnez un chef",
+    "saveFailed": "Échec de l’enregistrement",
+    "createTitle": "Nouvelle équipe experte",
+    "editTitle": "Modifier l’équipe experte",
+    "nameLabel": "Nom",
+    "namePlaceholder": "Nom du preset",
+    "categoryLabel": "Catégorie",
+    "categoryPlaceholder": "ex. Ingénierie",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Quel est le rôle de cette équipe ?",
+    "tagsLabel": "Compétences",
+    "tagPlaceholder": "Ajouter un tag",
+    "examplePlaceholder": "Ajouter une tâche exemple"
+  }
 }

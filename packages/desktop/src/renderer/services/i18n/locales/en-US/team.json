@@ -172,6 +172,17 @@
     "nameRequired": "Please enter a preset name",
     "memberRequired": "Please add at least one member",
     "leaderRequired": "Please select a leader",
-    "saveFailed": "Failed to save preset"
+    "saveFailed": "Failed to save preset",
+    "createTitle": "New expert team",
+    "editTitle": "Edit expert team",
+    "nameLabel": "Name",
+    "namePlaceholder": "Preset name",
+    "categoryLabel": "Category",
+    "categoryPlaceholder": "e.g. Engineering",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "What does this team do?",
+    "tagsLabel": "Expertise tags",
+    "tagPlaceholder": "Add a tag",
+    "examplePlaceholder": "Add an example task"
   }
 }

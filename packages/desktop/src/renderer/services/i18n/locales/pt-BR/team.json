@@ -155,5 +155,34 @@
       "shutdown_request": "Pedido de encerramento"
     }
   },
-  "presets": {"title":"Equipes especialistas","newPreset":"Novo","searchPlaceholder":"Pesquisar equipes","emptyDescription":"Crie equipes reutilizáveis.","createPreset":"Criar equipe especialista","invoke":"Usar","invokeThisTeam":"Usar esta equipe","leaderLabel":"Líder","memberMissing":"Ausente","membersLabel":"Membros","examplesLabel":"Tarefas de exemplo","missingWarning":"Alguns assistentes não estão disponíveis.","selectHint":"Selecione uma equipe para ver detalhes.","nameRequired":"Informe um nome","memberRequired":"Adicione um membro","leaderRequired":"Selecione um líder","saveFailed":"Falha ao salvar"}
+  "presets": {
+    "title": "Equipes especialistas",
+    "newPreset": "Novo",
+    "searchPlaceholder": "Pesquisar equipes",
+    "emptyDescription": "Crie equipes reutilizáveis.",
+    "createPreset": "Criar equipe especialista",
+    "invoke": "Usar",
+    "invokeThisTeam": "Usar esta equipe",
+    "leaderLabel": "Líder",
+    "memberMissing": "Ausente",
+    "membersLabel": "Membros",
+    "examplesLabel": "Tarefas de exemplo",
+    "missingWarning": "Alguns assistentes não estão disponíveis.",
+    "selectHint": "Selecione uma equipe para ver detalhes.",
+    "nameRequired": "Informe um nome",
+    "memberRequired": "Adicione um membro",
+    "leaderRequired": "Selecione um líder",
+    "saveFailed": "Falha ao salvar",
+    "createTitle": "Nova equipe especialista",
+    "editTitle": "Editar equipe especialista",
+    "nameLabel": "Nome",
+    "namePlaceholder": "Nome da predefinição",
+    "categoryLabel": "Categoria",
+    "categoryPlaceholder": "ex.: Engenharia",
+    "descriptionLabel": "Descrição",
+    "descriptionPlaceholder": "O que esta equipe faz?",
+    "tagsLabel": "Especialidades",
+    "tagPlaceholder": "Adicionar tag",
+    "examplePlaceholder": "Adicionar tarefa de exemplo"
+  }
 }
