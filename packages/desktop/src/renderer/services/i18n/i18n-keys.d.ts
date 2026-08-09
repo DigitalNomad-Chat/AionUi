@@ -2616,6 +2616,7 @@ export type I18nKey =
   | 'team.removeAgent.confirmTitle'
   | 'team.reorderMember'
   | 'team.sendBox.placeholder'
+  | 'team.sider.adHocTooltip'
   | 'team.sider.createTeam'
   | 'team.sider.delete'
   | 'team.sider.deleteCancel'

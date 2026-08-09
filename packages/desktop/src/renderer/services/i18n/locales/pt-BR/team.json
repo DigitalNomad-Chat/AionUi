@@ -15,7 +15,8 @@
     "renameOk": "Salvar",
     "renameCancel": "Cancelar",
     "renameSuccess": "Equipe renomeada",
-    "deleteSuccess": "Equipe excluída"
+    "deleteSuccess": "Equipe excluída",
+    "adHocTooltip": "Equipe temporária"
   },
   "newAgent": "Novo Assistente",
   "noMessages": "Nenhuma mensagem ainda.",

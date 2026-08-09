@@ -62,11 +62,11 @@ const TeamPresetPanel: React.FC<Props> = ({ visible, onClose, team }) => {
     try {
       await ipcBridge.teamPreset.create.invoke(buildTeamPresetInput(team, name, userId));
       setName('');
-      Message.success(t('settings.preset_registered', { defaultValue: 'Preset saved' }));
+      Message.success(t('common.saveSuccess'));
       await load();
     } catch (error) {
       console.error('Failed to save team preset', error);
-      Message.error(t('settings.no_presets', { defaultValue: 'Unable to save preset' }));
+      Message.error(t('common.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -103,7 +103,7 @@ const TeamPresetPanel: React.FC<Props> = ({ visible, onClose, team }) => {
             disabled={!name.trim()}
             onClick={() => void saveCurrentTeam()}
           >
-            {t('settings.preset_registered', { defaultValue: 'Save' })}
+            {t('common.save')}
           </Button>
         </div>
       )}

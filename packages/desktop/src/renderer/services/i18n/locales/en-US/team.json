@@ -15,7 +15,8 @@
     "renameOk": "Save",
     "renameCancel": "Cancel",
     "renameSuccess": "Team renamed",
-    "deleteSuccess": "Team deleted"
+    "deleteSuccess": "Team deleted",
+    "adHocTooltip": "Ad-hoc team"
   },
   "newAgent": "New Assistant",
   "noMessages": "No messages yet.",
