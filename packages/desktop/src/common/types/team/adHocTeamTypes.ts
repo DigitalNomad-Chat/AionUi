@@ -6,7 +6,7 @@ export type IAdHocTeamFromConversationParams = {
   conversation_id: string;
   user_id: string;
   /** The assistant to add as a teammate. */
-  target_assistant_id: string;
+  target_assistant_id?: string;
   /** Optional team display name; backend falls back to a generated name. */
   name?: string;
   /** Workspace sharing strategy for the created team. */
@@ -23,7 +23,7 @@ export type TAdHocTeamCreateResult = {
   origin_conversation_id: string;
   leader_slot_id: string;
   /** The newly added or reused teammate slot_id. */
-  target_slot_id: string;
+  target_slot_id?: string;
   /** The assistant selected to join the team. */
   target_assistant_id?: string;
   /** Display name of the selected assistant for user-facing feedback. */

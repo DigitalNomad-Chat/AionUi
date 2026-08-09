@@ -31,7 +31,7 @@ export function fromBackendAdHocTeamCreateResult(raw: unknown): TAdHocTeamCreate
     team_id: (r.team_id as string | undefined) ?? '',
     origin_conversation_id: (r.origin_conversation_id as string | undefined) ?? '',
     leader_slot_id: (r.leader_slot_id as string | undefined) ?? '',
-    target_slot_id: (r.target_slot_id as string | undefined) ?? '',
+    ...(typeof r.target_slot_id === 'string' ? { target_slot_id: r.target_slot_id } : {}),
     created: Boolean(r.created),
   };
 }
