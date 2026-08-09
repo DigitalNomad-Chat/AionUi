@@ -72,7 +72,6 @@ describe('adHocTeamMapper', () => {
         team_id: '',
         origin_conversation_id: '',
         leader_slot_id: '',
-        target_slot_id: '',
         created: false,
       });
     });
