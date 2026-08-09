@@ -17,6 +17,7 @@ import { blurActiveElement } from '@renderer/utils/ui/focus';
 import { useTeamList } from '@renderer/pages/team/hooks/useTeamList';
 import { useSiderTeamBadges } from '@renderer/pages/team/hooks/useSiderTeamBadges';
 import TeamCreateModal from '@renderer/pages/team/components/TeamCreateModal';
+import TeamPresetPanel from '@renderer/pages/team/components/TeamPresetPanel';
 import { ipcBridge } from '@/common';
 import SiderItem from './SiderItem';
 import type { SiderMenuItem } from './SiderItem';
@@ -72,6 +73,8 @@ const TeamSiderSection: React.FC<TeamSiderSectionProps> = ({
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameName, setRenameName] = useState('');
   const [renameLoading, setRenameLoading] = useState(false);
+  const [presetTeam, setPresetTeam] = useState<(typeof teams)[number] | undefined>();
+  const [presetVisible, setPresetVisible] = useState(false);
 
   const handleRenameConfirm = useCallback(async () => {
     if (!renameId || !renameName.trim()) return;
@@ -225,6 +228,11 @@ const TeamSiderSection: React.FC<TeamSiderSectionProps> = ({
                   label: t('team.sider.rename'),
                 },
                 {
+                  key: 'preset',
+                  icon: <Plus theme='outline' size='14' />,
+                  label: t('settings.preset', { defaultValue: 'Save as preset' }),
+                },
+                {
                   key: 'delete',
                   icon: <DeleteOne theme='outline' size='14' />,
                   label: t('team.sider.delete'),
@@ -265,6 +273,9 @@ const TeamSiderSection: React.FC<TeamSiderSectionProps> = ({
                         setRenameId(team.id);
                         setRenameName(team.name);
                         setRenameVisible(true);
+                      } else if (key === 'preset') {
+                        setPresetTeam(team);
+                        setPresetVisible(true);
                       } else if (key === 'delete') {
                         Modal.confirm({
                           title: t('team.sider.deleteConfirm'),
@@ -309,6 +320,14 @@ const TeamSiderSection: React.FC<TeamSiderSectionProps> = ({
         onCreated={(team) => {
           void refreshTeams();
           Promise.resolve(navigate(`/team/${team.id}`)).catch(console.error);
+        }}
+      />
+      <TeamPresetPanel
+        visible={presetVisible}
+        team={presetTeam}
+        onClose={() => {
+          setPresetVisible(false);
+          setPresetTeam(undefined);
         }}
       />
       <Modal
