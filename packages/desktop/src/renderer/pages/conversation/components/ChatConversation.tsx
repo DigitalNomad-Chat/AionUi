@@ -36,6 +36,7 @@ import { isLegacyReadOnlyConversationType } from '../utils/conversationRuntime';
 import { resolveConversationBackend } from '../utils/conversationAssistantIdentity';
 import LegacyReadOnlyConversation from '../platforms/legacy/LegacyReadOnlyConversation';
 import { useActiveLease } from '../hooks/useActiveLease';
+import { getAdHocTeamRoute, useAdHocTeamFromConversation } from '../hooks/useAdHocTeamFromConversation';
 // import SkillRuleGenerator from './components/SkillRuleGenerator'; // Temporarily hidden
 
 const configErrorMessageKey = (error: unknown) => {
@@ -258,6 +259,7 @@ const ChatConversation: React.FC<{
   hideSendBox?: boolean;
 }> = ({ conversation, hideSendBox }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   useActiveLease({ type: 'conversation', id: conversation?.id });
   const workspaceEnabled = Boolean(conversation?.extra?.workspace) && !conversation?.project_id;
   const cronJobId = resolveCronJobId(conversation?.extra);
@@ -267,6 +269,21 @@ const ChatConversation: React.FC<{
   const isAionrsConversation = conversation?.type === 'aionrs';
   const isLegacyReadOnlyConversation = isLegacyReadOnlyConversationType(conversation?.type);
   const resolvedHideSendBox = hideSendBox || isLegacyReadOnlyConversationType(conversation?.type);
+  const adHocTeam = useAdHocTeamFromConversation(conversation?.id);
+  const adHocTeamStatus =
+    conversation && adHocTeam.association?.team_id ? (
+      <Button
+        type='text'
+        size='mini'
+        data-testid='ad-hoc-team-status'
+        onClick={() => {
+          const route = getAdHocTeamRoute(adHocTeam.association);
+          if (route) void navigate(route);
+        }}
+      >
+        {adHocTeam.association.status === 'active' ? t('team.sider.title') : t('team.sider.delete')}
+      </Button>
+    ) : null;
 
   // 使用统一的 Hook 获取预设助手信息（ACP/Codex 会话）
   // Use unified hook for preset assistant info (ACP/Codex conversations)
@@ -383,6 +400,7 @@ const ChatConversation: React.FC<{
         </div>
       )}
       {modelSelector && <div className='shrink-0'>{modelSelector}</div>}
+      {adHocTeamStatus}
     </div>
   );
 
