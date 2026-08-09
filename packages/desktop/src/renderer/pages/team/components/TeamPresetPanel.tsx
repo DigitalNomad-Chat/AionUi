@@ -22,8 +22,8 @@ export function buildTeamPresetInput(team: TTeam, name: string, userId: string) 
     user_id: userId,
     name: name.trim(),
     description: '',
-    expertise_tags: [],
-    example_prompts: [],
+    expertise_tags: [] as string[],
+    example_prompts: [] as string[],
     leader,
     members: members.filter((member) => member !== leader),
   };
