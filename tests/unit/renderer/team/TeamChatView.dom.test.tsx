@@ -151,6 +151,38 @@ describe('TeamChatView', () => {
     );
   });
 
+  it('routes antigravity team conversations through the ACP surface', async () => {
+    usePresetAssistantInfoMock.mockReturnValue({ info: null });
+
+    render(
+      <TeamChatView
+        team_id='team-1'
+        slot_id='leader-1'
+        conversation={{
+          id: 'conv-antigravity',
+          type: 'antigravity',
+          name: 'Team - Antigravity',
+          created_at: Date.now(),
+          updated_at: Date.now(),
+          extra: {
+            backend: 'antigravity',
+            workspace: '/tmp/project',
+            project_id: 'project-1',
+          },
+        }}
+      />
+    );
+
+    expect(await screen.findByTestId('mock-acp-chat')).toBeInTheDocument();
+    expect(acpChatMock.mock.calls[0]?.[0]).toEqual(
+      expect.objectContaining({
+        conversation_id: 'conv-antigravity',
+        backend: 'antigravity',
+        teamRuntime: expect.any(Object),
+      })
+    );
+  });
+
   it('passes loaded skills and MCP snapshot to AionRS team chat', async () => {
     usePresetAssistantInfoMock.mockReturnValue({ info: null });
     const mcpStatuses = [{ id: 'office', name: 'office', status: 'loaded' as const }];
