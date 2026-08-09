@@ -1,10 +1,11 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Button, Input, Message } from '@arco-design/web-react';
+import { Button, Input, Message, Tabs } from '@arco-design/web-react';
 import type { RefInputType } from '@arco-design/web-react/es/Input/interface';
 import { Plus } from '@icon-park/react';
 import { useTranslation } from 'react-i18next';
 import { ipcBridge } from '@/common';
 import type { TTeam } from '@/common/types/team/teamTypes';
+import type { TeamPreset } from '@/common/types/team/teamTypes';
 import type { TeamAssistantInput } from '@/common/adapter/teamMapper';
 import { useAuth } from '@renderer/hooks/context/AuthContext';
 import { useLayoutContext } from '@/renderer/hooks/context/LayoutContext';
@@ -17,6 +18,10 @@ import { resolveDefaultTeamAgentModel } from './teamCreateModelResolver';
 import TeamAssistantPicker from './memberPicker/TeamAssistantPicker';
 import TeamAssistantPickerDropdown from './memberPicker/TeamAssistantPickerDropdown';
 import TeamMemberDraftList, { type TeamMemberDraft } from './memberPicker/TeamMemberDraftList';
+import TeamPresetPicker from './TeamPresetPicker';
+import TeamPresetPreview from './TeamPresetPreview';
+import useSWR from 'swr';
+import TeamPresetEditorModal from './TeamPresetEditorModal';
 
 // [E2E SYNC] 修改此组件的 DOM 结构（class、标题、关闭按钮等）时，
 // 必须同步更新 tests/e2e/cases/teams/team-create.e2e.ts、team-whitelist.e2e.ts、
@@ -45,6 +50,14 @@ const TeamCreateModal: React.FC<Props> = ({ visible, onClose, onCreated }) => {
   const [loading, setLoading] = useState(false);
   // 窄屏专用：助手选择器以下拉列表形式，锚在“添加成员”按钮上按需唤出。
   const [assistantDropdownOpen, setAssistantDropdownOpen] = useState(false);
+  const [mode, setMode] = useState<'assistants' | 'presets'>('assistants');
+  const [selectedPreset, setSelectedPreset] = useState<TeamPreset | null>(null);
+  const { data: presets = [], mutate: mutatePresets } = useSWR<TeamPreset[]>(
+    ['team-presets-create', user?.id ?? 'system_default_user'],
+    () => ipcBridge.teamPreset.list.invoke({ user_id: user?.id ?? 'system_default_user' })
+  );
+  const [editorVisible, setEditorVisible] = useState(false);
+  const [editingPreset, setEditingPreset] = useState<TeamPreset | null>(null);
   const nameInputRef = useRef<RefInputType | null>(null);
 
   const hasOneLeader = useMemo(
@@ -58,7 +71,30 @@ const TeamCreateModal: React.FC<Props> = ({ visible, onClose, onCreated }) => {
     setLeaderSelectionId(undefined);
     setWorkspace('');
     setAssistantDropdownOpen(false);
+    setMode('assistants');
+    setSelectedPreset(null);
+    setEditorVisible(false);
+    setEditingPreset(null);
     onClose();
+  };
+
+  const handleSavePreset = async (
+    input: import('@/common/adapter/teamPresetBridge').CreateTeamPresetInput,
+    presetId?: string
+  ) => {
+    const userId = user?.id ?? 'system_default_user';
+    if (presetId) await ipcBridge.teamPreset.update.invoke({ id: presetId, input });
+    else await ipcBridge.teamPreset.create.invoke({ ...input, user_id: userId });
+    await mutatePresets();
+    setEditorVisible(false);
+    setEditingPreset(null);
+    setMode('presets');
+  };
+
+  const handleRemovePreset = async (preset: TeamPreset) => {
+    await ipcBridge.teamPreset.delete.invoke({ id: preset.id });
+    if (selectedPreset?.id === preset.id) setSelectedPreset(null);
+    await mutatePresets();
   };
 
   const handleSelectAssistant = (assistant: TeamAssistantOption) => {
@@ -76,6 +112,26 @@ const TeamCreateModal: React.FC<Props> = ({ visible, onClose, onCreated }) => {
     if (leaderSelectionId === selectionId) {
       setLeaderSelectionId(nextMembers[0]?.selectionId);
     }
+  };
+
+  const handleInvokePreset = (preset: TeamPreset) => {
+    const drafts = preset.members
+      .toSorted((a, b) => a.order - b.order)
+      .map((member) => allAssistants.find((assistant) => assistant.id === member.assistant_id))
+      .filter((assistant): assistant is TeamAssistantOption => Boolean(assistant))
+      .map((assistant) => ({
+        selectionId: `${assistant.id}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        assistant,
+      }));
+    if (drafts.length === 0) {
+      Message.warning(t('team.presets.memberRequired', { defaultValue: 'Please add at least one member' }));
+      return;
+    }
+    setSelectedMembers(drafts);
+    const leader = drafts.find((draft) => draft.assistant.id === preset.leader.assistant_id) ?? drafts[0];
+    setLeaderSelectionId(leader?.selectionId);
+    setName(preset.name);
+    setMode('assistants');
   };
 
   const handleCreate = async () => {
@@ -318,7 +374,44 @@ const TeamCreateModal: React.FC<Props> = ({ visible, onClose, onCreated }) => {
         ),
       }}
     >
-      {isMobile ? mobileBody : desktopBody}
+      <Tabs
+        activeTab={mode}
+        onChange={(key) => setMode(key as 'assistants' | 'presets')}
+        data-testid='team-create-mode-tabs'
+      >
+        <Tabs.TabPane key='assistants' title={t('team.create.assistantsTab', { defaultValue: 'Assistants' })}>
+          {isMobile ? mobileBody : desktopBody}
+        </Tabs.TabPane>
+        <Tabs.TabPane key='presets' title={t('team.presets.title', { defaultValue: 'Expert teams' })}>
+          <div className='grid min-h-240px grid-cols-2 gap-16px p-16px' data-testid='team-create-presets-pane'>
+            <TeamPresetPicker
+              presets={presets}
+              selectedId={selectedPreset?.id}
+              onSelect={setSelectedPreset}
+              onInvoke={handleInvokePreset}
+              onCreate={() => {
+                setEditingPreset(null);
+                setEditorVisible(true);
+              }}
+              onEdit={(preset) => {
+                setEditingPreset(preset);
+                setEditorVisible(true);
+              }}
+              onRemove={(preset) => void handleRemovePreset(preset)}
+            />
+            <TeamPresetPreview preset={selectedPreset} onInvoke={handleInvokePreset} />
+          </div>
+        </Tabs.TabPane>
+      </Tabs>
+      <TeamPresetEditorModal
+        visible={editorVisible}
+        preset={editingPreset}
+        onCancel={() => {
+          setEditorVisible(false);
+          setEditingPreset(null);
+        }}
+        onSaved={handleSavePreset}
+      />
     </AionModal>
   );
 };

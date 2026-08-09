@@ -35,6 +35,7 @@
     "placeholder": "Envoyer un message à l'agent coordinateur..."
   },
   "create": {
+    "assistantsTab": "Assistants",
     "title": "Créer une équipe",
     "namePlaceholder": "Nom de l'équipe",
     "dispatchAgentPlaceholder": "Sélectionner le chef d'équipe",
@@ -107,5 +108,6 @@
       "idle_notification": "Notif. d’inactivité",
       "shutdown_request": "Demande d’arrêt"
     }
-  }
+  },
+  "presets": {"title":"Équipes expertes","newPreset":"Nouveau","searchPlaceholder":"Rechercher des équipes","emptyDescription":"Créez des équipes réutilisables.","createPreset":"Créer une équipe experte","invoke":"Utiliser","invokeThisTeam":"Utiliser cette équipe","leaderLabel":"Chef","memberMissing":"Manquant","membersLabel":"Membres","examplesLabel":"Exemples","missingWarning":"Certains assistants sont indisponibles.","selectHint":"Sélectionnez une équipe pour voir les détails.","nameRequired":"Saisissez un nom","memberRequired":"Ajoutez un membre","leaderRequired":"Sélectionnez un chef","saveFailed":"Échec de l’enregistrement"}
 }

@@ -35,6 +35,7 @@
     "placeholder": "向团队 Leader 助手发消息..."
   },
   "create": {
+    "assistantsTab": "助手",
     "title": "新建团队",
     "namePlaceholder": "团队名称",
     "dispatchAgentPlaceholder": "选择团队 Leader 助手",
@@ -153,5 +154,8 @@
       "idle_notification": "空闲通知",
       "shutdown_request": "关闭请求"
     }
+  },
+  "presets": {
+    "title": "专家团", "newPreset": "新建", "searchPlaceholder": "搜索专家团", "emptyDescription": "创建可复用的专家团，加快团队组建。", "createPreset": "创建专家团", "invoke": "调用", "invokeThisTeam": "调用此专家团", "leaderLabel": "队长", "memberMissing": "缺失", "membersLabel": "成员", "examplesLabel": "示例任务", "missingWarning": "该专家团中的部分助手不可用，创建前请替换。", "selectHint": "选择一个专家团以预览详情。", "nameRequired": "请输入专家团名称", "memberRequired": "请至少添加一名成员", "leaderRequired": "请选择队长", "saveFailed": "保存专家团失败"
   }
 }

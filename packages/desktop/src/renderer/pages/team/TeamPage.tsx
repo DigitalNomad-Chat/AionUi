@@ -25,8 +25,6 @@ import TeamAgentIdentity from './components/TeamAgentIdentity';
 import TeamViewToggle from './components/TeamViewToggle';
 import TeamActivityView from './activity/TeamActivityView';
 import TeamWarmupOverlay from './components/TeamWarmupOverlay';
-import TeamPresetCards from './components/TeamPresetCards';
-import TeamPresetPanel from './components/TeamPresetPanel';
 import { useTeamViewMode } from './hooks/useTeamViewMode';
 import { useTeamWarmup, type TeamWarmupMemberState, type TeamWarmupPhase } from './hooks/useTeamWarmup';
 import { TeamTabsProvider, useTeamTabs } from './hooks/TeamTabsContext';
@@ -245,10 +243,6 @@ const TeamPageContent: React.FC<TeamPageContentProps> = ({
   warmupRuntimeStatus,
   onRetryWarmup,
 }) => {
-  const [presetVisible, setPresetVisible] = useState(false);
-  const { data: presets = [] } = useSWR(['team-presets', team.user_id], () =>
-    ipcBridge.teamPreset.list.invoke({ user_id: team.user_id })
-  );
   const { t } = useTranslation();
   const navigate = useNavigate();
   useActiveLease({ type: 'team', id: team.id });
@@ -515,16 +509,7 @@ const TeamPageContent: React.FC<TeamPageContentProps> = ({
           isTemporaryWorkspace={isTeamWorkspaceTemporary}
           workspacePreferenceKey={team.id}
           onRenameTitle={onRenameTeam}
-          headerExtra={
-            <div className='flex items-center gap-8px min-w-0'>
-              <TeamPresetCards
-                presets={presets}
-                onCreate={() => setPresetVisible(true)}
-                onSelect={() => setPresetVisible(true)}
-              />
-              {assistants.length > 1 && <TeamViewToggle value={viewMode} onChange={setViewMode} />}
-            </div>
-          }
+          headerExtra={assistants.length > 1 ? <TeamViewToggle value={viewMode} onChange={setViewMode} /> : undefined}
           headerLeading={
             <span className='inline-flex items-center gap-4px'>
               {team.origin_conversation_id ? (
@@ -543,7 +528,6 @@ const TeamPageContent: React.FC<TeamPageContentProps> = ({
             </span>
           }
         >
-          <TeamPresetPanel visible={presetVisible} team={team} onClose={() => setPresetVisible(false)} />
           <div className='relative flex h-full'>
             <TeamWarmupOverlay
               phase={warmupPhase}
