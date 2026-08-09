@@ -40,6 +40,42 @@ vi.mock('@/renderer/pages/conversation/platforms/acp/AcpChat', () => ({
   default: (props: unknown) => acpChatMock(props),
 }));
 
+vi.mock('@/renderer/pages/conversation/platforms/aionrs/AionrsChat', () => ({
+  __esModule: true,
+  default: () => <div data-testid='mock-aionrs-chat'>aionrs chat</div>,
+}));
+
+vi.mock('@/renderer/pages/conversation/platforms/aionrs/AionrsModelSelector', () => ({
+  __esModule: true,
+  default: () => <div data-testid='mock-aionrs-model-selector'>model selector</div>,
+}));
+
+vi.mock('@/renderer/pages/conversation/platforms/aionrs/useAionrsModelSelection', () => ({
+  useAionrsModelSelection: () => ({
+    current_model: undefined,
+    providers: [],
+    getAvailableModels: () => [],
+    handleSelectModel: vi.fn(),
+    getDisplayModelName: () => '',
+  }),
+}));
+
+vi.mock('@/renderer/hooks/agent/useAcpConfigOptions', () => ({
+  useAcpConfigOptions: () => ({
+    thoughtLevel: undefined,
+    setStatus: { state: 'idle' },
+    setConfigOption: vi.fn(),
+  }),
+  classifyConfigSetError: () => 'unknown',
+}));
+
+vi.mock('@/renderer/pages/conversation/runtime/useConversationRuntimeView', () => ({
+  useConversationRuntimeView: () => ({
+    activeTurnId: undefined,
+    markStopAcknowledged: vi.fn(),
+  }),
+}));
+
 vi.mock('@/renderer/components/agent/AcpModelSelector', () => ({
   __esModule: true,
   default: (props: unknown) => acpModelSelectorMock(props),
@@ -82,6 +118,22 @@ function legacyConversation(type: 'gemini' | 'codex' | 'openclaw-gateway' | 'nan
     user_id: 'user-1',
     name: `${type} history`,
     type,
+    model: {},
+    extra: { workspace: '/tmp/aionui-history' },
+    status: 'finished',
+    source: 'aionui',
+    created_at: 1,
+    modified_at: 1,
+    pinned: false,
+  } as TChatConversation;
+}
+
+function aionrsConversation(): TChatConversation {
+  return {
+    id: 'conv-aionrs',
+    user_id: 'user-1',
+    name: 'Aionrs history',
+    type: 'aionrs',
     model: {},
     extra: { workspace: '/tmp/aionui-history' },
     status: 'finished',
@@ -163,6 +215,13 @@ describe('ChatConversation legacy runtime rendering', () => {
   it('exposes the ad-hoc team creation entry for an unassociated conversation', () => {
     render(<ChatConversation conversation={legacyConversation('codex')} />);
 
+    expect(screen.getByTestId('ad-hoc-team-create')).toBeInTheDocument();
+  });
+
+  it('exposes the ad-hoc team creation entry in an Aionrs conversation panel', () => {
+    render(<ChatConversation conversation={aionrsConversation()} />);
+
+    expect(screen.getByTestId('mock-aionrs-chat')).toBeInTheDocument();
     expect(screen.getByTestId('ad-hoc-team-create')).toBeInTheDocument();
   });
 

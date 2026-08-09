@@ -36,7 +36,7 @@ import { isLegacyReadOnlyConversationType } from '../utils/conversationRuntime';
 import { resolveConversationBackend } from '../utils/conversationAssistantIdentity';
 import LegacyReadOnlyConversation from '../platforms/legacy/LegacyReadOnlyConversation';
 import { useActiveLease } from '../hooks/useActiveLease';
-import { getAdHocTeamRoute, useAdHocTeamFromConversation } from '../hooks/useAdHocTeamFromConversation';
+import { useAdHocTeamFromConversation } from '../hooks/useAdHocTeamFromConversation';
 // import SkillRuleGenerator from './components/SkillRuleGenerator'; // Temporarily hidden
 
 const configErrorMessageKey = (error: unknown) => {
@@ -145,6 +145,57 @@ const _AddNewConversation: React.FC<{ conversation: TChatConversation }> = ({ co
 
 type AionrsConversation = Extract<TChatConversation, { type: 'aionrs' }>;
 
+const AdHocTeamHeaderAction: React.FC<{ conversation: TChatConversation }> = ({ conversation }) => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const adHocTeam = useAdHocTeamFromConversation(conversation.id);
+  const [creating, setCreating] = useState(false);
+
+  const create = useCallback(async () => {
+    if (creating) return;
+    setCreating(true);
+    try {
+      const result = await ipcBridge.team.fromConversation.invoke({
+        conversation_id: conversation.id,
+        user_id: 'system_default_user',
+      });
+      await adHocTeam.refresh();
+      if (result.team_id) void navigate(`/team/${result.team_id}`);
+    } catch (error) {
+      console.error('Failed to create ad-hoc team from conversation', error);
+      Message.error(t('team.sider.createTeam'));
+    } finally {
+      setCreating(false);
+    }
+  }, [adHocTeam, conversation.id, creating, navigate, t]);
+
+  if (adHocTeam.isLoading) return null;
+  if (adHocTeam.association?.team_id) {
+    return (
+      <Button
+        type='text'
+        size='mini'
+        data-testid='ad-hoc-team-status'
+        onClick={() => void navigate(`/team/${adHocTeam.association?.team_id}`)}
+      >
+        {adHocTeam.association.status === 'active' ? t('team.sider.title') : t('team.sider.delete')}
+      </Button>
+    );
+  }
+  return (
+    <Button
+      type='text'
+      size='mini'
+      loading={creating}
+      data-testid='ad-hoc-team-create'
+      icon={<Plus theme='outline' size='14' />}
+      onClick={() => void create()}
+    >
+      {t('team.sider.createTeam')}
+    </Button>
+  );
+};
+
 const AionrsConversationPanel: React.FC<{ conversation: AionrsConversation; sliderTitle: React.ReactNode }> = ({
   conversation,
   sliderTitle,
@@ -208,6 +259,7 @@ const AionrsConversationPanel: React.FC<{ conversation: AionrsConversation; slid
     headerExtra: (
       <div className='flex items-center gap-8px'>
         <CronJobManager conversation_id={conversation.id} cron_job_id={cronJobId} />
+        <AdHocTeamHeaderAction conversation={conversation} />
         {!isMobile && (
           <AionrsModelSelector
             selection={modelSelection}
@@ -259,7 +311,6 @@ const ChatConversation: React.FC<{
   hideSendBox?: boolean;
 }> = ({ conversation, hideSendBox }) => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   useActiveLease({ type: 'conversation', id: conversation?.id });
   const workspaceEnabled = Boolean(conversation?.extra?.workspace) && !conversation?.project_id;
   const cronJobId = resolveCronJobId(conversation?.extra);
@@ -269,39 +320,6 @@ const ChatConversation: React.FC<{
   const isAionrsConversation = conversation?.type === 'aionrs';
   const isLegacyReadOnlyConversation = isLegacyReadOnlyConversationType(conversation?.type);
   const resolvedHideSendBox = hideSendBox || isLegacyReadOnlyConversationType(conversation?.type);
-  const adHocTeam = useAdHocTeamFromConversation(conversation?.id);
-  const [creatingAdHocTeam, setCreatingAdHocTeam] = useState(false);
-  const createAdHocTeam = useCallback(async () => {
-    if (!conversation || creatingAdHocTeam) return;
-    setCreatingAdHocTeam(true);
-    try {
-      const result = await ipcBridge.team.fromConversation.invoke({
-        conversation_id: conversation.id,
-        user_id: 'system_default_user',
-      });
-      await adHocTeam.refresh();
-      if (result.team_id) void navigate(`/team/${result.team_id}`);
-    } catch (error) {
-      console.error('Failed to create ad-hoc team from conversation', error);
-      Message.error(t('team.sider.createTeam'));
-    } finally {
-      setCreatingAdHocTeam(false);
-    }
-  }, [adHocTeam, conversation, creatingAdHocTeam, navigate, t]);
-  const adHocTeamStatus =
-    conversation && adHocTeam.association?.team_id ? (
-      <Button
-        type='text'
-        size='mini'
-        data-testid='ad-hoc-team-status'
-        onClick={() => {
-          const route = getAdHocTeamRoute(adHocTeam.association);
-          if (route) void navigate(route);
-        }}
-      >
-        {adHocTeam.association.status === 'active' ? t('team.sider.title') : t('team.sider.delete')}
-      </Button>
-    ) : null;
 
   // 使用统一的 Hook 获取预设助手信息（ACP/Codex 会话）
   // Use unified hook for preset assistant info (ACP/Codex conversations)
@@ -418,19 +436,7 @@ const ChatConversation: React.FC<{
         </div>
       )}
       {modelSelector && <div className='shrink-0'>{modelSelector}</div>}
-      {conversation && !adHocTeam.isLoading && !adHocTeam.association && (
-        <Button
-          type='text'
-          size='mini'
-          loading={creatingAdHocTeam}
-          data-testid='ad-hoc-team-create'
-          icon={<Plus theme='outline' size='14' />}
-          onClick={() => void createAdHocTeam()}
-        >
-          {t('team.sider.createTeam')}
-        </Button>
-      )}
-      {adHocTeamStatus}
+      {conversation && <AdHocTeamHeaderAction conversation={conversation} />}
     </div>
   );
 
