@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { DeleteOne, EditOne, Peoples, Plus, Pushpin, Right } from '@icon-park/react';
+import { Comment, DeleteOne, EditOne, Peoples, Plus, Pushpin, Right } from '@icon-park/react';
 import { Input, Message, Modal, Spin, Tooltip } from '@arco-design/web-react';
 import classNames from 'classnames';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -116,8 +116,14 @@ const TeamSiderSection: React.FC<TeamSiderSectionProps> = ({
             {sortedTeams.map((team) => {
               const isActive = pathname.startsWith(`/team/${team.id}`);
               const isRunning = isTeamRunning(team.id);
+              const isAdHoc = Boolean(team.origin_conversation_id);
               return (
-                <Tooltip key={team.id} {...siderTooltipProps} content={team.name} position='right'>
+                <Tooltip
+                  key={team.id}
+                  {...siderTooltipProps}
+                  content={isAdHoc ? `${team.name} (${t('team.sider.adHocTooltip')})` : team.name}
+                  position='right'
+                >
                   <div
                     data-testid={`collapsed-team-item-${team.id}`}
                     className={classNames(
@@ -133,6 +139,14 @@ const TeamSiderSection: React.FC<TeamSiderSectionProps> = ({
                       >
                         <Spin size={16} />
                       </span>
+                    ) : isAdHoc ? (
+                      <Comment
+                        data-testid={`collapsed-team-icon-${team.id}`}
+                        theme='outline'
+                        size='16'
+                        fill={iconColors.primary}
+                        style={{ lineHeight: 0 }}
+                      />
                     ) : (
                       <Peoples
                         data-testid={`collapsed-team-icon-${team.id}`}
@@ -219,6 +233,7 @@ const TeamSiderSection: React.FC<TeamSiderSectionProps> = ({
               ];
               const teamBadge = teamBadgeCounts.get(team.id) ?? 0;
               const isRunning = isTeamRunning(team.id);
+              const isAdHoc = Boolean(team.origin_conversation_id);
               return (
                 <div key={team.id} className='relative group'>
                   <SiderItem
@@ -227,6 +242,8 @@ const TeamSiderSection: React.FC<TeamSiderSectionProps> = ({
                         <span data-testid={`team-spinner-${team.id}`} className='flex items-center justify-center'>
                           <Spin size={16} />
                         </span>
+                      ) : isAdHoc ? (
+                        <Comment theme='outline' size='16' fill='currentColor' style={{ lineHeight: 0 }} />
                       ) : (
                         <Peoples
                           data-testid={`team-icon-${team.id}`}
@@ -259,7 +276,9 @@ const TeamSiderSection: React.FC<TeamSiderSectionProps> = ({
                             const teamIdToDelete = team.id;
                             await removeTeam(teamIdToDelete);
                             Message.success(t('team.sider.deleteSuccess'));
-                            if (window.location.hash.includes(`/team/${teamIdToDelete}`)) {
+                            if (team.origin_conversation_id) {
+                              navigate(`/conversation/${team.origin_conversation_id}`, { replace: true });
+                            } else if (window.location.hash.includes(`/team/${teamIdToDelete}`)) {
                               window.location.hash = '#/';
                             }
                           },
