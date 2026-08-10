@@ -23,7 +23,11 @@ describe('TeamPresetPicker', () => {
     const onSelect = vi.fn();
     const onInvoke = vi.fn();
     render(<TeamPresetPicker presets={[preset]} onSelect={onSelect} onInvoke={onInvoke} />);
-    fireEvent.click(screen.getByTestId('preset-picker-item-p1').querySelector('button')!);
+    // The whole card is a single button (reference layout e3f154559): the test id
+    // sits on the button itself, not on a wrapper div.
+    const card = screen.getByTestId('preset-picker-item-p1');
+    expect(card.tagName).toBe('BUTTON');
+    fireEvent.click(card);
     expect(onSelect).toHaveBeenCalledWith(preset);
     fireEvent.click(screen.getByTestId('preset-picker-invoke-p1'));
     expect(onInvoke).toHaveBeenCalledWith(preset);
@@ -34,5 +38,15 @@ describe('TeamPresetPicker', () => {
     render(<TeamPresetPicker presets={[]} onCreate={onCreate} onSelect={vi.fn()} onInvoke={vi.fn()} />);
     fireEvent.click(screen.getByTestId('preset-picker-new'));
     expect(onCreate).toHaveBeenCalledOnce();
+  });
+
+  it('centers the empty-state description below the header (reference layout e3f154559)', () => {
+    render(<TeamPresetPicker presets={[]} onCreate={vi.fn()} onSelect={vi.fn()} onInvoke={vi.fn()} />);
+
+    const empty = screen.getByTestId('preset-picker-empty');
+    expect(empty).toHaveClass('flex', 'flex-1', 'items-center', 'justify-center');
+    expect(empty).toHaveTextContent('Create reusable expert teams to speed up team setup.');
+    // The empty state is pure copy — no extra illustration or duplicate create button.
+    expect(screen.getAllByTestId('preset-picker-new')).toHaveLength(1);
   });
 });

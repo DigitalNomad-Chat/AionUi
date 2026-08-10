@@ -70,6 +70,7 @@ vi.mock('@renderer/components/layout/Sider/SiderItem', async () => {
 });
 
 vi.mock('@renderer/pages/team/components/TeamCreateModal', () => ({ default: () => null }));
+vi.mock('@renderer/pages/team/components/TeamPresetPanel', () => ({ default: () => null }));
 vi.mock('@renderer/utils/ui/siderTooltip', () => ({ cleanupSiderTooltips: vi.fn() }));
 vi.mock('@renderer/utils/ui/focus', () => ({ blurActiveElement: vi.fn() }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
@@ -131,6 +132,16 @@ describe('TeamSiderSection running state', () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
+  });
+
+  it('shows a single create entry in the expanded header (no duplicate preset plus)', () => {
+    localStorage.setItem('team-section-expanded', 'true');
+    renderSection(false);
+
+    // Reference layout e3f154559 keeps exactly one "+" in the section header; the
+    // extra preset "+" regressed in the redo and is covered by the per-team context menu instead.
+    expect(screen.getByTestId('team-create-btn')).toBeInTheDocument();
+    expect(screen.queryByTestId('team-preset-create-btn')).not.toBeInTheDocument();
   });
 
   it('shows a spinner for a running team in the expanded section', () => {

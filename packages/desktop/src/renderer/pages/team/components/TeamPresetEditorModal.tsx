@@ -19,6 +19,9 @@ type Props = {
 
 const makeSelectionId = (id: string) => `${id}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
+// 模块级常量引用：内联对象字面量会让 Arco TextArea 的 autoSize effect 每次渲染都重新触发。
+const DESCRIPTION_AUTO_SIZE = { minRows: 3, maxRows: 6 };
+
 const TeamPresetEditorModal: React.FC<Props> = ({ visible, preset, onCancel, onSaved }) => {
   const { t, i18n } = useTranslation();
   const { assistants } = useTeamAssistantOptions(i18n?.language ?? 'en-US');
@@ -123,9 +126,13 @@ const TeamPresetEditorModal: React.FC<Props> = ({ visible, preset, onCancel, onS
       variant='standard'
       visible={visible}
       onCancel={onCancel}
-      unmountOnExit
       className='team-preset-editor-modal'
       style={{ width: 720, maxWidth: 'calc(100vw - 72px)' }}
+      // 必须压在创建弹窗（wrap 10000 / mask 9999）之上（旧版 e3f154559 同款数值）
+      wrapStyle={{ zIndex: 10001 }}
+      maskStyle={{ zIndex: 10000 }}
+      autoFocus={false}
+      unmountOnExit
       header={{
         title: preset
           ? t('team.presets.editTitle', { defaultValue: 'Edit expert team' })
@@ -134,8 +141,15 @@ const TeamPresetEditorModal: React.FC<Props> = ({ visible, preset, onCancel, onS
       footer={{
         render: () => (
           <div className='flex justify-end gap-10px'>
-            <Button onClick={onCancel}>{t('common.cancel')}</Button>
-            <Button type='primary' onClick={() => void save()} data-testid='preset-editor-save'>
+            <Button onClick={onCancel} className='!h-38px min-w-84px !rounded-8px !px-18px !text-13px'>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              type='primary'
+              onClick={() => void save()}
+              data-testid='preset-editor-save'
+              className='!h-38px min-w-100px !rounded-8px !px-18px !text-13px'
+            >
               {t('common.save')}
             </Button>
           </div>
@@ -153,8 +167,9 @@ const TeamPresetEditorModal: React.FC<Props> = ({ visible, preset, onCancel, onS
             onChange={setName}
             placeholder={t('team.presets.namePlaceholder', { defaultValue: 'Preset name' })}
             data-testid='preset-editor-name'
+            className='!h-38px !rounded-8px !text-13px'
           />
-          <span className='text-14px text-t-secondary'>
+          <span className='text-14px font-500 text-t-secondary'>
             {t('team.presets.categoryLabel', { defaultValue: 'Category' })}
           </span>
           <Input
@@ -162,8 +177,9 @@ const TeamPresetEditorModal: React.FC<Props> = ({ visible, preset, onCancel, onS
             onChange={setCategory}
             placeholder={t('team.presets.categoryPlaceholder', { defaultValue: 'e.g. Engineering' })}
             data-testid='preset-editor-category'
+            className='!h-38px !rounded-8px !text-13px'
           />
-          <span className='self-start pt-8px text-14px text-t-secondary'>
+          <span className='self-start pt-8px text-14px font-500 text-t-secondary'>
             {t('team.presets.descriptionLabel', { defaultValue: 'Description' })}
           </span>
           <Input.TextArea
@@ -171,6 +187,9 @@ const TeamPresetEditorModal: React.FC<Props> = ({ visible, preset, onCancel, onS
             onChange={setDescription}
             placeholder={t('team.presets.descriptionPlaceholder', { defaultValue: 'What does this team do?' })}
             data-testid='preset-editor-description'
+            // 常量引用：内联对象每次渲染都会触发 Arco TextArea 的 autoSize effect 循环 setState。
+            autoSize={DESCRIPTION_AUTO_SIZE}
+            className='!rounded-8px !text-13px'
           />
         </div>
         <div className='flex flex-col gap-8px'>
@@ -191,8 +210,9 @@ const TeamPresetEditorModal: React.FC<Props> = ({ visible, preset, onCancel, onS
               onPressEnter={addTag}
               placeholder={t('team.presets.tagPlaceholder', { defaultValue: 'Add a tag' })}
               data-testid='preset-editor-tag-input'
+              className='!h-34px !rounded-8px !text-13px'
             />
-            <Button onClick={addTag} icon={<Plus />}>
+            <Button type='secondary' size='small' icon={<Plus theme='outline' size='14' />} onClick={addTag}>
               {t('common.add', { defaultValue: 'Add' })}
             </Button>
           </div>
@@ -201,14 +221,16 @@ const TeamPresetEditorModal: React.FC<Props> = ({ visible, preset, onCancel, onS
           <span className='text-14px font-600 text-t-secondary'>
             {t('team.presets.examplesLabel', { defaultValue: 'Example tasks' })}
           </span>
-          {examples.map((value) => (
-            <div className='flex items-center gap-8px' key={value}>
-              <span className='flex-1 truncate text-13px'>{value}</span>
-              <Button type='text' size='mini' onClick={() => setExamples(examples.filter((item) => item !== value))}>
-                {t('common.delete', { defaultValue: 'Delete' })}
-              </Button>
-            </div>
-          ))}
+          <ul className='m-0 flex list-none flex-col gap-4px p-0'>
+            {examples.map((value) => (
+              <li className='flex items-center gap-8px' key={value}>
+                <span className='flex-1 truncate text-13px text-t-secondary'>{value}</span>
+                <Button type='text' size='mini' onClick={() => setExamples(examples.filter((item) => item !== value))}>
+                  {t('common.delete', { defaultValue: 'Delete' })}
+                </Button>
+              </li>
+            ))}
+          </ul>
           <div className='flex gap-8px'>
             <Input
               value={exampleInput}
@@ -216,8 +238,9 @@ const TeamPresetEditorModal: React.FC<Props> = ({ visible, preset, onCancel, onS
               onPressEnter={addExample}
               placeholder={t('team.presets.examplePlaceholder', { defaultValue: 'Add an example task' })}
               data-testid='preset-editor-example-input'
+              className='!h-34px !rounded-8px !text-13px'
             />
-            <Button onClick={addExample} icon={<Plus />}>
+            <Button type='secondary' size='small' icon={<Plus theme='outline' size='14' />} onClick={addExample}>
               {t('common.add', { defaultValue: 'Add' })}
             </Button>
           </div>
@@ -235,16 +258,18 @@ const TeamPresetEditorModal: React.FC<Props> = ({ visible, preset, onCancel, onS
               density='compact'
             />
           ) : (
-            <div className='py-14px text-center text-13px text-t-tertiary'>
+            <div className='flex min-h-112px items-center justify-center rounded-8px border border-dashed border-border-2 bg-fill-1 py-14px text-13px text-t-tertiary'>
               {t('team.create.noSupportedAgents', { defaultValue: 'No supported assistants available' })}
             </div>
           )}
-          <TeamMemberDraftList
-            members={members}
-            leaderSelectionId={leaderSelectionId}
-            onLeaderChange={setLeaderSelectionId}
-            onRemove={removeMember}
-          />
+          <div className='max-h-240px overflow-y-auto rounded-8px bg-fill-1 p-8px'>
+            <TeamMemberDraftList
+              members={members}
+              leaderSelectionId={leaderSelectionId}
+              onLeaderChange={setLeaderSelectionId}
+              onRemove={removeMember}
+            />
+          </div>
         </div>
       </div>
     </AionModal>

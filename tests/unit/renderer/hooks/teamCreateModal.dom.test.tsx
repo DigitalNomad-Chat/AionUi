@@ -97,6 +97,14 @@ vi.mock('@renderer/components/workspace', () => ({
   WorkspaceFolderSelect: () => <div data-testid='workspace-folder-select' />,
 }));
 
+// Stub the preset editor: the layering contract under test is WHERE TeamCreateModal
+// mounts it (sibling of the create AionModal, shared close lifecycle), not its internals.
+// The real editor's Arco TextArea autoSize loops forever under jsdom's zero-layout
+// environment; its own spec file covers its rendering and stacking props.
+vi.mock('@renderer/pages/team/components/TeamPresetEditorModal', () => ({
+  default: ({ visible }: { visible: boolean }) => (visible ? <div data-testid='team-preset-editor-modal' /> : null),
+}));
+
 vi.mock('@/common', () => ({
   ipcBridge: {
     team: {
@@ -216,6 +224,25 @@ describe('TeamCreateModal', () => {
     expect(nameInput).toHaveClass('!h-38px', '!text-13px');
     expect(within(detailsPane).getByTestId('workspace-folder-select')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Confirm Create' })).toHaveClass('!h-38px', '!text-13px');
+  });
+
+  it('mounts the preset editor as a sibling of the create modal, not inside it', () => {
+    render(<TeamCreateModal visible onClose={vi.fn()} onCreated={vi.fn()} />);
+
+    // Switch to the Expert teams tab and open the editor via the picker's create button.
+    fireEvent.click(screen.getByRole('tab', { name: 'Expert teams' }));
+    fireEvent.click(screen.getByTestId('preset-picker-new'));
+
+    const createModal = screen.getByTestId('team-create-modal');
+    const editor = screen.getByTestId('team-preset-editor-modal');
+    // Regression guard: the editor must NOT live inside the create modal's DOM. Nesting
+    // traps it in the parent's stacking context (wrap zIndex 10000 + overflow hidden),
+    // so the create dialog covers the editor no matter how large the editor z-index is.
+    expect(createModal.contains(editor)).toBe(false);
+
+    // Closing the create modal also closes the editor (shared close lifecycle).
+    fireEvent.click(within(createModal).getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByTestId('team-preset-editor-modal')).toBeNull();
   });
 
   it('passes assistant identity through when creating a team with an assistant leader', async () => {

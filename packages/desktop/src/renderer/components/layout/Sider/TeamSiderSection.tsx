@@ -100,7 +100,6 @@ const TeamSiderSection: React.FC<TeamSiderSectionProps> = ({
     const unpinned = teams.filter((team) => !pinnedIds.includes(team.id));
     return [...pinned, ...unpinned];
   }, [teams, pinnedIds]);
-  const activeTeam = useMemo(() => teams.find((team) => pathname.startsWith(`/team/${team.id}`)), [pathname, teams]);
 
   const handleTeamClick = useCallback(
     (team_id: string) => {
@@ -201,25 +200,6 @@ const TeamSiderSection: React.FC<TeamSiderSectionProps> = ({
                 onClick={(e) => {
                   e.stopPropagation();
                   setCreateTeamVisible(true);
-                }}
-              >
-                <Plus
-                  theme='outline'
-                  size='14'
-                  fill='currentColor'
-                  className='block leading-none'
-                  style={{ lineHeight: 0 }}
-                />
-              </div>
-            </Tooltip>
-            <Tooltip content={t('settings.preset', { defaultValue: 'Save as preset' })} position='top'>
-              <div
-                data-testid='team-preset-create-btn'
-                className='ml-2px -mr-4px size-20px rd-4px flex items-center justify-center hover:bg-fill-4 transition-all shrink-0 cursor-pointer text-t-secondary hover:text-t-primary'
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setPresetTeam(activeTeam);
-                  setPresetVisible(true);
                 }}
               >
                 <Plus
