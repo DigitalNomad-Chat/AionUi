@@ -9,7 +9,7 @@
 | 文档 | 内容 |
 | --- | --- |
 | [01-原版二开资产清单.md](./01-原版二开资产清单.md) + [01-原版二开资产清单.manifest.json](./01-原版二开资产清单.manifest.json) | **原版清单**：仅以固定证据树（PIN-UI `adf8dfaa4` / PIN-CORE `eb0c884e` / `e3f154559`）核验的 A-D 分级、来源 commit、职责、依赖、契约、触发器、缺陷；机读 manifest 为 `originalSource`/`adapterTarget` 双层（schema `aionui-2dev-asset-inventory/2`） |
-| [02-v2.1.52适配矩阵.md](./02-v2.1.52适配矩阵.md) | **适配矩阵**：v2.1.52 重做线的提交对应、B/C 级插入点、移植判定、迁移窗口（038/039/040、repair 脚本）与 P7 修复记录（`d0beccbf8`/`21d73ba45`） |
+| [02-v2.1.52适配矩阵.md](./02-v2.1.52适配矩阵.md) | **适配矩阵**：v2.1.52 重做线的提交对应、B/C 级插入点、移植判定、迁移窗口（038/039/040、repair 脚本）、P7 修复记录，以及 AionUi 2.1.52 × AionCore `561d217b` 生产包兼容/验收身份 |
 | [03-扩展包与adapter决策.md](./03-扩展包与adapter决策.md) | **adapter 决策层**：未来二开源码扩展包的目录边界、manifest 字段、adapter 分层、宿主接点收敛策略与形态决策记录（DR-1） |
 | [设计规格归档/](./设计规格归档/) | 专家团/创建弹窗等 e3 原版 UI 设计规格与验收清单（P8-2 维护） |
 | [审计报告/](./审计报告/) | 来源审计报告原样归档（不篡改结论）：`adhoc-team-design-source-audit-2026-08-10.md`（设计规格归档来源审计）、`audit-2dev-docs-provenance-20260810.md`（二开文档来源审计，P8-1 分层依据） |
