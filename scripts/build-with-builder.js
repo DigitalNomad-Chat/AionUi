@@ -766,13 +766,33 @@ try {
   // 5. Prepare aioncore binary (for packaged runtime usage)
   const { prepareAioncore } = require('../packages/shared-scripts/src/prepare-aioncore.js');
   const { resolveAioncoreVersion } = require('./resolveAioncoreVersion.js');
+  const { verifyAioncoreLocalBundle } = require('./verify-aioncore-local-bundle.js');
   const projectRoot = path.resolve(__dirname, '..');
+  const localBundleDir = (process.env.AIONUI_BACKEND_LOCAL_BUNDLE_DIR || '').trim();
+  // Production packaging is intentionally strict: without an explicitly
+  // verified local bundle, prepareAioncore would fall back to downloading the
+  // official binary, which does not contain the ad-hoc team API.
+  if (!localBundleDir) {
+    throw new Error(
+      'Production packaging requires AIONUI_BACKEND_LOCAL_BUNDLE_DIR pointing to the pinned AionCore team bundle'
+    );
+  }
+  verifyAioncoreLocalBundle({
+    bundleDir: localBundleDir,
+    platform: process.platform,
+    arch: targetArch,
+  });
   writeGeneratedSentryDsnInclude(projectRoot);
   prepareAioncore({
     projectRoot,
     platform: process.platform,
     arch: targetArch,
     version: resolveAioncoreVersion(projectRoot),
+  });
+  verifyAioncoreLocalBundle({
+    bundleDir: path.join(projectRoot, 'resources', 'bundled-aioncore', `${process.platform}-${targetArch}`),
+    platform: process.platform,
+    arch: targetArch,
   });
 
   // 6. Prepare hub resources (index.json + extension zips for offline fallback)

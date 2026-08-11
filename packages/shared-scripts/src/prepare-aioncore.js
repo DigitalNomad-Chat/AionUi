@@ -484,13 +484,29 @@ function prepareAioncore(options) {
     ) {
       copyDirectorySafe(resolvedLocalBundleDir, targetDir);
       ensureExecutableMode(targetBinaryPath);
+      // Preserve provenance supplied by the locally built bundle. The local
+      // manifest carries the source commit and binary SHA-256 used by the
+      // packaging gate; replacing it with a minimal generated manifest would
+      // silently erase that audit trail.
+      let localManifest = null;
+      const localManifestPath = path.join(resolvedLocalBundleDir, 'manifest.json');
+      if (fs.existsSync(localManifestPath)) {
+        try {
+          localManifest = JSON.parse(fs.readFileSync(localManifestPath, 'utf8'));
+        } catch (error) {
+          throw new Error(`Invalid local aioncore bundle manifest: ${error.message}`);
+        }
+      }
       const manifest = {
         platform,
         arch,
-        version: tag || `actions-run-${actionsRunId}` || 'local-bundle',
+        version: localManifest?.version || tag || `actions-run-${actionsRunId}` || 'local-bundle',
         generatedAt: new Date().toISOString(),
         sourceType: 'local-bundle',
-        source: { path: resolvedLocalBundleDir },
+        source: {
+          ...(localManifest?.source && typeof localManifest.source === 'object' ? localManifest.source : {}),
+          path: resolvedLocalBundleDir,
+        },
         files: [binaryName, 'managed-resources/'],
       };
       writeJson(path.join(targetDir, 'manifest.json'), manifest);

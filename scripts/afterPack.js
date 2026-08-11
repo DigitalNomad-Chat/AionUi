@@ -9,6 +9,7 @@ const {
   getModulesToRebuild,
 } = require('./rebuildNativeModules');
 const { verifyBundledAioncoreResources } = require('../packages/shared-scripts/src/verify-bundled-aioncore-resources');
+const { verifyAioncoreLocalBundle } = require('./verify-aioncore-local-bundle.js');
 
 /**
  * afterPack hook for electron-builder
@@ -33,6 +34,16 @@ function verifyBundledResources(resourcesDir, electronPlatformName, targetArch) 
     console.error(`   Missing bundled resources: ${result.missing.join(', ')}`);
     throw new Error(`Packaged app is missing required bundled resource(s): ${result.missing.join(', ')}`);
   }
+
+  // Verify the actual app resources, not only the source tree. This catches
+  // an accidental official-download fallback or a stale binary copied into
+  // the asar before a distributable is emitted.
+  const localBundleDir = path.join(resourcesDir, 'bundled-aioncore', result.runtimeKey);
+  verifyAioncoreLocalBundle({
+    bundleDir: localBundleDir,
+    platform: electronPlatformName,
+    arch: targetArch,
+  });
 
   console.log(`   ✓ Bundled resources verified for ${result.runtimeKey} (${result.checked.length} checks)`);
 }
