@@ -83,6 +83,16 @@ describe('adHocTeamMapper', () => {
       expect(fromBackendAdHocTeamAssociationOptional(undefined)).toBeNull();
     });
 
+    it('returns null for the backend no-association sentinel', () => {
+      expect(
+        fromBackendAdHocTeamAssociationOptional({
+          team_id: '',
+          origin_conversation_id: 'conv-1',
+          status: 'disbanded',
+        })
+      ).toBeNull();
+    });
+
     it('maps association without team payload', () => {
       const result = fromBackendAdHocTeamAssociationOptional({
         team_id: 'team-1',

@@ -83,6 +83,34 @@ describe('useAdHocTeamFromConversation', () => {
     });
   });
 
+  it('marks a newly created team active when the previous lookup reported disbanded', async () => {
+    adHocMocks.getByConversation.invoke.mockResolvedValue({
+      team_id: '',
+      origin_conversation_id: 'conv-1',
+      status: 'disbanded',
+    });
+    adHocMocks.fromConversation.invoke.mockResolvedValue({
+      team_id: 'team-2',
+      origin_conversation_id: 'conv-1',
+      leader_slot_id: 'slot-lead',
+      target_slot_id: 'slot-target',
+      created: true,
+    });
+
+    const { result } = renderHook(() => useAdHocTeamFromConversation('conv-1', 'user-1'));
+    await waitFor(() => expect(result.current.association?.status).toBe('disbanded'));
+
+    await act(async () => {
+      await result.current.create('assistant-1');
+    });
+
+    expect(result.current.association).toEqual({
+      team_id: 'team-2',
+      origin_conversation_id: 'conv-1',
+      status: 'active',
+    });
+  });
+
   it('exposes an error when the backend call fails', async () => {
     adHocMocks.fromConversation.invoke.mockRejectedValue(new Error('network failure'));
 

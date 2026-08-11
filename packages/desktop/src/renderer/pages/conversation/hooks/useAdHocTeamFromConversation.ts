@@ -228,15 +228,11 @@ export function useAdHocTeamFromConversation(
           target_assistant_id: targetAssistantId,
         });
         setResult(created);
-        setAssociation((prev) =>
-          prev
-            ? { ...prev, team_id: created.team_id }
-            : {
-                team_id: created.team_id,
-                origin_conversation_id: created.origin_conversation_id,
-                status: 'active',
-              }
-        );
+        setAssociation({
+          team_id: created.team_id,
+          origin_conversation_id: created.origin_conversation_id,
+          status: 'active',
+        });
         return created;
       } catch (err) {
         const normalized = err instanceof Error ? err : new Error(String(err));

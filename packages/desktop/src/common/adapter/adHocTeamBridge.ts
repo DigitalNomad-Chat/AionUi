@@ -39,10 +39,12 @@ export function fromBackendAdHocTeamCreateResult(raw: unknown): TAdHocTeamCreate
 export function fromBackendAdHocTeamAssociationOptional(raw: unknown): TAdHocTeamAssociation | null {
   if (raw == null) return null;
   const r = (raw ?? {}) as Record<string, unknown>;
+  const teamId = typeof r.team_id === 'string' ? r.team_id.trim() : '';
+  if (!teamId) return null;
   const team = r.team ? fromBackendTeam(r.team) : undefined;
   const status = (r.status as string | undefined) ?? 'active';
   return {
-    team_id: (r.team_id as string | undefined) ?? '',
+    team_id: teamId,
     origin_conversation_id: (r.origin_conversation_id as string | undefined) ?? '',
     status: status === 'active' || status === 'disbanded' ? status : 'active',
     ...(team ? { team } : {}),
