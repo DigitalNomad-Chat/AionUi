@@ -72,7 +72,10 @@ function copyFileSafe(sourcePath, targetPath) {
 
 function copyDirectorySafe(sourcePath, targetPath) {
   ensureDirectory(path.dirname(targetPath));
-  fs.cpSync(sourcePath, targetPath, { recursive: true, force: true });
+  // Preserve the link text exactly. Without verbatimSymlinks Node resolves a
+  // relative source link before recreating it, which can bake a build-machine
+  // absolute path (for example /private/tmp/...) into the packaged app.
+  fs.cpSync(sourcePath, targetPath, { recursive: true, force: true, verbatimSymlinks: true });
 }
 
 function ensureExecutableMode(filePath) {

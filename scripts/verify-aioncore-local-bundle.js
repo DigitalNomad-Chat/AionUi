@@ -17,6 +17,39 @@ const EXPECTED_SOURCE_COMMIT = '561d217b';
 const EXPECTED_BINARY_SHA256 = '58e7207247f7aa1ce670995b55dd3cf3d1d69fc37013e71905707d5c7d13b5ee';
 const REQUIRED_SIGNATURES = ['team-presets', 'from-conversation', 'team_presets'];
 
+function isAbsoluteSymlinkTarget(target) {
+  return path.isAbsolute(target) || path.posix.isAbsolute(target) || path.win32.isAbsolute(target);
+}
+
+function findUnsafeSymlinks(rootDir) {
+  const resolvedRoot = path.resolve(rootDir);
+  const unsafe = [];
+
+  function visit(currentDir) {
+    for (const entry of fs.readdirSync(currentDir, { withFileTypes: true })) {
+      const entryPath = path.join(currentDir, entry.name);
+      if (entry.isSymbolicLink()) {
+        const target = fs.readlinkSync(entryPath);
+        const resolvedTarget = path.resolve(path.dirname(entryPath), target);
+        const relativeTarget = path.relative(resolvedRoot, resolvedTarget);
+        const escapesRoot = relativeTarget === '..' || relativeTarget.startsWith(`..${path.sep}`);
+        if (isAbsoluteSymlinkTarget(target) || escapesRoot) {
+          unsafe.push({
+            path: path.relative(resolvedRoot, entryPath),
+            target,
+            reason: isAbsoluteSymlinkTarget(target) ? 'absolute target' : 'target escapes bundle',
+          });
+        }
+        continue;
+      }
+      if (entry.isDirectory()) visit(entryPath);
+    }
+  }
+
+  visit(resolvedRoot);
+  return unsafe;
+}
+
 function sha256(filePath) {
   return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 }
@@ -57,6 +90,11 @@ function verifyAioncoreLocalBundle({
   const managedResourcesPath = path.join(resolvedBundleDir, 'managed-resources');
   if (!fs.existsSync(managedResourcesPath) || !fs.statSync(managedResourcesPath).isDirectory()) {
     throw new Error(`AionCore local bundle managed resources are missing: ${managedResourcesPath}`);
+  }
+  const unsafeSymlinks = findUnsafeSymlinks(managedResourcesPath);
+  if (unsafeSymlinks.length > 0) {
+    const details = unsafeSymlinks.map((link) => `${link.path} -> ${link.target} (${link.reason})`).join(', ');
+    throw new Error(`AionCore managed resources contain non-portable symlink(s): ${details}`);
   }
 
   const manifest = readManifest(resolvedBundleDir);
@@ -142,5 +180,6 @@ module.exports = {
   EXPECTED_BINARY_SHA256,
   EXPECTED_SOURCE_COMMIT,
   REQUIRED_SIGNATURES,
+  findUnsafeSymlinks,
   verifyAioncoreLocalBundle,
 };
