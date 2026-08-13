@@ -16,6 +16,8 @@ import type {
 } from '@/common/types/team/teamTypes';
 import type { ITeamTeammateMessageEvent } from '@/common/types/team/teamTypes';
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { getAdHocTeamName } from './adHocTeamNaming';
 
 const DEFAULT_USER_ID = 'system_default_user';
 
@@ -52,8 +54,10 @@ export type UseAdHocTeamFromConversationResult = {
  */
 export function useAdHocTeamFromConversation(
   conversationId: string | undefined,
-  userId?: string
+  userId?: string,
+  sourceTitle?: string
 ): UseAdHocTeamFromConversationResult {
+  const { t } = useTranslation();
   const resolvedUserId = userId ?? DEFAULT_USER_ID;
   const [association, setAssociation] = useState<TAdHocTeamAssociation | null>(null);
   const [team, setTeam] = useState<TTeam | null>(null);
@@ -226,6 +230,7 @@ export function useAdHocTeamFromConversation(
           conversation_id: conversationId,
           user_id: resolvedUserId,
           target_assistant_id: targetAssistantId,
+          name: getAdHocTeamName(sourceTitle, t('team.sider.adHocTooltip')),
         });
         setResult(created);
         setAssociation({
@@ -242,7 +247,7 @@ export function useAdHocTeamFromConversation(
         setIsLoading(false);
       }
     },
-    [conversationId, resolvedUserId]
+    [conversationId, resolvedUserId, sourceTitle, t]
   );
 
   const clearError = useCallback(() => setError(null), []);

@@ -183,7 +183,7 @@ const AionrsConversationPanel: React.FC<{ conversation: AionrsConversation; slid
   const aionrsAssistantId = presetAssistantInfo?.assistantId;
   const { user } = useAuth();
   const isTeamConversation = isTeamRelatedConversation(conversation);
-  const adHocTeam = useAdHocTeamFromConversation(conversation.id, user?.id ?? 'system_default_user');
+  const adHocTeam = useAdHocTeamFromConversation(conversation.id, user?.id ?? 'system_default_user', conversation.name);
   const layout = useLayoutContext();
   // Mobile: model selection moved into the sendbox `+` action sheet to free up
   // header space; the dropdown stays available on desktop and tablets ≥768px.
@@ -295,7 +295,11 @@ const ChatConversation: React.FC<{
 
   const { user } = useAuth();
   const isTeamConversation = conversation ? isTeamRelatedConversation(conversation) : false;
-  const adHocTeam = useAdHocTeamFromConversation(conversation?.id, user?.id ?? 'system_default_user');
+  const adHocTeam = useAdHocTeamFromConversation(
+    conversation?.id,
+    user?.id ?? 'system_default_user',
+    conversation?.name
+  );
 
   const conversationNode = useMemo(() => {
     if (!conversation || isAionrsConversation) return null;

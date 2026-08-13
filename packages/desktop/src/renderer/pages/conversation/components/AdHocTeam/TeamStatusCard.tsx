@@ -75,6 +75,7 @@ export const TeamStatusCard: React.FC<TeamStatusCardProps> = ({
       size='mini'
       className='flex items-center gap-8px px-12px py-6px h-auto rounded-8px bg-2 hover:bg-hover border border-b-base'
       onClick={handleClick}
+      title={teamId}
       data-testid='team-status-card'
       aria-label={t('conversation.collaboration.statusAria', { defaultValue: 'Open team' })}
     >
