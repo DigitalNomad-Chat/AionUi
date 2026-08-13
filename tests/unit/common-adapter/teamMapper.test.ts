@@ -273,6 +273,16 @@ describe('teamMapper', () => {
   });
 
   describe('fromBackendTeamList and fromBackendTeamOptional', () => {
+    it('preserves multiple teams with the same display name', () => {
+      const list = fromBackendTeamList([
+        { id: 'team-1', name: 'Ad-hoc Team' },
+        { id: 'team-2', name: 'Ad-hoc Team' },
+        { id: 'team-3', name: 'Ad-hoc Team' },
+      ]);
+
+      expect(list.map((team) => team.id)).toEqual(['team-1', 'team-2', 'team-3']);
+    });
+
     it('maps an array of raw teams', () => {
       const list = fromBackendTeamList([{ id: 'team-1' }, { id: 'team-2' }]);
       expect(list).toHaveLength(2);

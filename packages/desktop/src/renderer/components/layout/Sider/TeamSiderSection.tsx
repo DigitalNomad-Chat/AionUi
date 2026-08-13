@@ -243,7 +243,12 @@ const TeamSiderSection: React.FC<TeamSiderSectionProps> = ({
               const isRunning = isTeamRunning(team.id);
               const isAdHoc = Boolean(team.origin_conversation_id);
               return (
-                <div key={team.id} className='relative group'>
+                <div
+                  key={team.id}
+                  data-testid={`team-item-${team.id}`}
+                  data-team-id={team.id}
+                  className='relative group'
+                >
                   <SiderItem
                     icon={
                       isRunning ? (
