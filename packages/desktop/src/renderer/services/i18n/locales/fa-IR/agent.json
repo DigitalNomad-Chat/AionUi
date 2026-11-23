@@ -55,5 +55,24 @@
     "failed": "اتصال مجدد عامل ناموفق بود",
     "initializingTooltip": "عامل در حال راه‌اندازی است. پس از آماده شدن دوباره متصل شوید",
     "processingTooltip": "قبل از اتصال مجدد، منتظر پایان پاسخ فعلی باشید"
+  },
+  "privacyToggle": {
+    "tooltip": "Privacy protection",
+    "enabledTooltip": "Privacy protection is on: model requests leave this device redacted",
+    "disabledTooltip": "Privacy protection is off: model requests go directly to the provider",
+    "noGateway": "Local privacy gateway is not configured yet",
+    "confirmTitle": "Privacy protection",
+    "confirmEnable": "Enable privacy protection and restart the runtime? Outgoing model content will be redacted before it leaves this device.",
+    "confirmDisable": "Disable privacy protection and restart the runtime? Outgoing model content will go directly to the provider.",
+    "enabledTip": "Privacy protection enabled",
+    "disabledTip": "Privacy protection disabled",
+    "failed": "Failed to switch privacy protection",
+    "panelTitle": "Privacy protection",
+    "statusEnabled": "On — model requests are redacted before leaving this device.",
+    "statusDisabled": "Off — model requests go directly to the provider.",
+    "wordsLabel": "Protected words",
+    "wordsPlaceholder": "Type a word and press Enter",
+    "wordsSave": "Save words",
+    "wordsSaved": "Words saved; runtime restarted"
   }
 }

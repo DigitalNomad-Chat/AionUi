@@ -17,6 +17,7 @@ type QuitCleanupDeps = {
   disposeCronResumeListener: () => void;
   stopBackend: () => Promise<void>;
   destroyPetWindow: () => Promise<void> | void;
+  stopPrivacyGateway?: () => Promise<void>;
   logInfo: (message: string) => void;
   logWarn: (message: string) => void;
   logError: (message: string, error: unknown) => void;
@@ -61,6 +62,10 @@ async function runQuitCleanup(deps: QuitCleanupDeps): Promise<void> {
       await deps.destroyPetWindow();
     } catch {
       /* pet not initialized */
+    }
+
+    if (deps.stopPrivacyGateway) {
+      await deps.stopPrivacyGateway().catch((err) => deps.logError('[App] Failed to stop privacy gateway:', err));
     }
   };
 

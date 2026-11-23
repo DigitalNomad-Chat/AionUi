@@ -12,6 +12,7 @@ import { initWindowControlsBridge } from './windowControlsBridge';
 import { initNotificationBridge } from './notificationBridge';
 import { initWebuiBridge } from './webuiBridge';
 import { initThemeBridge } from './themeBridge';
+import { initPrivacyGatewayBridge } from './privacyGatewayBridge';
 
 export type BridgeDependencies = Record<string, never>;
 
@@ -24,12 +25,14 @@ export function initAllBridges(_deps: BridgeDependencies = {}): void {
   initNotificationBridge();
   initWebuiBridge();
   initThemeBridge();
+  initPrivacyGatewayBridge();
 }
 
 export {
   initApplicationBridge,
   initDialogBridge,
   initNotificationBridge,
+  initPrivacyGatewayBridge,
   initSystemSettingsBridge,
   initThemeBridge,
   initUpdateBridge,

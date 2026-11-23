@@ -55,5 +55,24 @@
     "failed": "代理重新連接失敗",
     "initializingTooltip": "代理正在初始化，請稍後再重新連接",
     "processingTooltip": "請等目前回覆結束後再重新連接"
+  },
+  "privacyToggle": {
+    "tooltip": "Privacy protection",
+    "enabledTooltip": "Privacy protection is on: model requests leave this device redacted",
+    "disabledTooltip": "Privacy protection is off: model requests go directly to the provider",
+    "noGateway": "Local privacy gateway is not configured yet",
+    "confirmTitle": "Privacy protection",
+    "confirmEnable": "Enable privacy protection and restart the runtime? Outgoing model content will be redacted before it leaves this device.",
+    "confirmDisable": "Disable privacy protection and restart the runtime? Outgoing model content will go directly to the provider.",
+    "enabledTip": "Privacy protection enabled",
+    "disabledTip": "Privacy protection disabled",
+    "failed": "Failed to switch privacy protection",
+    "panelTitle": "隐私保护",
+    "statusEnabled": "已开启——模型请求在离开本机前自动脱敏。",
+    "statusDisabled": "已关闭——模型请求直接发送给模型服务商。",
+    "wordsLabel": "保护词表",
+    "wordsPlaceholder": "输入词语后按回车",
+    "wordsSave": "保存词表",
+    "wordsSaved": "词表已保存，运行时已重启"
   }
 }

@@ -1501,6 +1501,21 @@ export const theme = {
 };
 
 // ---------------------------------------------------------------------------
+// Privacy gateway — main-process-owned loopback supervisor (Yinye integration).
+// Renderer reads the coordinates to bind conversations via extra.privacy.
+// ---------------------------------------------------------------------------
+
+export const privacyGateway = {
+  // renderer → main: pull supervisor state; adminUrl/adminToken are null while
+  // the gateway is not running. Coordinates are loopback-only and regenerated
+  // per launch.
+  getStatus: bridge.buildProvider<
+    { running: boolean; adminUrl: string | null; adminToken: string | null; error: string | null },
+    void
+  >('privacy-gateway:get-status'),
+};
+
+// ---------------------------------------------------------------------------
 // System Settings — routed to /api/settings/* unless they need Electron-native side effects.
 // ---------------------------------------------------------------------------
 

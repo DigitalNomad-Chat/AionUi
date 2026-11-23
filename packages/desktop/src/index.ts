@@ -1157,6 +1157,11 @@ installQuitCleanup({
     const { destroyPetWindow } = await import('./process/pet/petManager');
     destroyPetWindow();
   },
+  // Stop the loopback privacy gateway child (no-op when it never started).
+  stopPrivacyGateway: async () => {
+    const { stopPrivacyGateway } = await import('./process/services/privacyGatewayHost');
+    await stopPrivacyGateway();
+  },
   logInfo: console.log,
   logWarn: console.warn,
   logError: console.error,

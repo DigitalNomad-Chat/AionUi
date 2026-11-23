@@ -26,6 +26,7 @@ import ChatLayout from './ChatLayout';
 import ChatSlider from './ChatSlider.tsx';
 import AcpModelSelector from '@/renderer/components/agent/AcpModelSelector';
 import AcpRuntimeRestartButton from '@/renderer/components/agent/AcpRuntimeRestartButton';
+import AionrsPrivacyToggle from '@/renderer/components/agent/AionrsPrivacyToggle';
 import { getConversationOrNull } from '@/renderer/pages/conversation/utils/conversationCache';
 import { getConversationCreateErrorMessage } from '@/renderer/pages/conversation/utils/conversationCreateError';
 import GoogleModelSelector from '../platforms/gemini/GoogleModelSelector';
@@ -413,6 +414,11 @@ const ChatConversation: React.FC<{
         </div>
       )}
       {modelSelector && <div className='shrink-0'>{modelSelector}</div>}
+      {conversation && conversation.type === 'aionrs' && !isMobile && !isLegacyReadOnlyConversation && (
+        <div className='shrink-0'>
+          <AionrsPrivacyToggle conversation_id={conversation.id} extra={conversation.extra} />
+        </div>
+      )}
       {conversation && conversation.type === 'acp' && !isMobile && !isLegacyReadOnlyConversation && (
         <div className='shrink-0'>
           <AcpRuntimeRestartButton
